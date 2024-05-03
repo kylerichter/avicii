@@ -1,3 +1,5 @@
+import config from 'config'
+
 module.exports = {
   /**
    * Emitted for general debugging information.
@@ -6,6 +8,8 @@ module.exports = {
    */
   name: 'debug',
   async execute(info: string) {
-    console.debug(info)
+    if (config.get('enableEvent.debug')) {
+      console.debug(info)
+    }
   }
 }

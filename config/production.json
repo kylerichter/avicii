@@ -1,1 +1,7 @@
-{}
+{
+  "enableEvent": {
+    "debug": false,
+    "error": false,
+    "warn": true
+  }
+}
