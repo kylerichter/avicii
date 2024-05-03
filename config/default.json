@@ -1,4 +1,9 @@
 {
   "clientId": "1218429152466567250",
-  "requiredEnv": ["DISCORD_TOKEN"]
+  "requiredEnv": ["DISCORD_TOKEN"],
+  "enableEvent": {
+    "debug": true,
+    "error": true,
+    "warn": true
+  }
 }

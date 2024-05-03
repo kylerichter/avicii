@@ -1,3 +1,5 @@
+import config from 'config'
+
 module.exports = {
   /**
    * Emitted for general warnings.
@@ -6,6 +8,8 @@ module.exports = {
    */
   name: 'warn',
   async execute(info: string) {
-    console.warn(info)
+    if (config.get('enableEvent.warn')) {
+      console.warn(info)
+    }
   }
 }
