@@ -1,0 +1,5 @@
+dist
+kubernetes
+node_modules
+.env
+README.md

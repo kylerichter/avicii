@@ -1,0 +1,57 @@
+{
+  "name": "avicii",
+  "version": "1.0.0",
+  "description": "Avicii Discord music bot",
+  "main": "src/bot/index.ts",
+  "repository": "https://github.com/kylerichter/avicii.git",
+  "author": "kingpluto",
+  "license": "UNLICENSED",
+  "private": true,
+  "scripts": {
+    "build": "rm -rf ./dist && tsc",
+    "start": "node dist/bot/index.js",
+    "deploy-commands": "node dist/deploy-commands.js"
+  },
+  "dependencies": {
+    "config": "3.3.11",
+    "discord.js": "14.14.1"
+  },
+  "devDependencies": {
+    "@types/config": "3.3.3",
+    "@typescript-eslint/parser": "7.0.2",
+    "eslint": "8.57.0",
+    "eslint-plugin-prettier": "5.1.3",
+    "prettier": "3.2.5",
+    "typescript": "5.3.3"
+  },
+  "engines": {
+    "node": ">= 21 <22"
+  },
+  "eslintConfig": {
+    "parser": "@typescript-eslint/parser",
+    "parserOptions": {
+      "ecmaVersion": "latest"
+    },
+    "plugins": [
+      "@typescript-eslint"
+    ],
+    "extends": [
+      "eslint:recommended",
+      "plugin:@typescript-eslint/eslint-recommended",
+      "plugin:@typescript-eslint/recommended",
+      "plugin:prettier/recommended"
+    ],
+    "rules": {
+      "semi": 0,
+      "comma-dangle": 0,
+      "prefer-const": "error"
+    }
+  },
+  "prettier": {
+    "trailingComma": "none",
+    "tabWidth": 2,
+    "semi": false,
+    "singleQuote": true,
+    "useTabs": false
+  }
+}

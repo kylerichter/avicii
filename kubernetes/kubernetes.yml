@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: avicii
+  namespace: discord-bots
+  labels:
+    app: avicii
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: avicii
+  template:
+    metadata:
+      labels:
+        app: avicii
+    spec:
+      containers:
+        - name: avicii
+          image: docker-image # TODO: add image
+          env:
+            - name: DISCORD_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: avicii-secrets
+                  key: discord_token
+            - name: SAMPLE_CONFIGMAP
+              valueFrom:
+                configMapKeyRef:
+                  name: avicii-config
+                  key: key
+          volumeMounts:
+            - name: avicii-config-volume
+              mountPath: /app/volume_mount/sample-config
+      volumes:
+        - name: avicii-config-volume
+          configMap:
+            name: avicii-config
+            items:
+              - key: sample.json
+                path: sample-config.json

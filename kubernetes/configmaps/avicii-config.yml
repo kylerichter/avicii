@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: avicii-config
+  namespace: discord-bots
+data:
+  key: 'value'
+  sample.json: |
+    {
+      "sample": "hello"
+    }
