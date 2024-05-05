@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: avicii
-          image: docker-image # TODO: add image
+          image: ghcr.io/kylerichter/avicii
           env:
             - name: DISCORD_TOKEN
               valueFrom:
