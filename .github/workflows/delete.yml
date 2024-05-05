@@ -1,0 +1,22 @@
+name: GitOps Delete
+
+on:
+  workflow_dispatch:
+
+env:
+  IMAGE_NAME: ${{ github.repository }}
+  KUBE_CLUSTER: k3s
+  REPO_NAME: avicii
+  TOKEN: ${{ secrets.TOKEN }}
+
+jobs:
+  Delete:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/kylerichter/gitops-helper:latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Deploy with GitOps
+        run: python /app/app.py --delete
