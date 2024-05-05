@@ -3,6 +3,7 @@ import { Client, GatewayIntentBits } from 'discord.js'
 import { checkEnv } from './helpers/checkEnv'
 import { loadCommands } from './helpers/commandLoader'
 import { loadEvents } from './helpers/eventLoader'
+import GuildPlayerOrchestrator from './music/orchestrator'
 
 checkEnv()
 
@@ -11,7 +12,7 @@ export const client = new Client({
     // GatewayIntentBits.DirectMessages,
     // GatewayIntentBits.DirectMessageReactions,
     // GatewayIntentBits.DirectMessageTyping,
-    GatewayIntentBits.Guilds,
+    GatewayIntentBits.Guilds
     // GatewayIntentBits.GuildEmojisAndStickers,
     // GatewayIntentBits.GuildIntegrations,
     // GatewayIntentBits.GuildInvites,
@@ -39,6 +40,8 @@ export const client = new Client({
 
 loadCommands(client)
 loadEvents(client)
+
+client.guildPlayerOrchestrator = new GuildPlayerOrchestrator(client)
 
 const login = async () => {
   try {
