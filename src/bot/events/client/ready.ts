@@ -19,6 +19,8 @@ module.exports = {
 
       console.log(`Ready! Logged in as ${user?.tag} at ${readyAt}`)
       console.log(`Guilds: ${guilds.slice(0, -2)}`)
+
+      await client.guildPlayerOrchestrator.init()
     } catch (error) {
       console.error('ready event error', error)
     }
