@@ -1,0 +1,16 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: daily
+    groups:
+      production-dependencies:
+        dependency-type: 'production'
+        exclude-patterns:
+          - 'discord*'
+      development-dependencies:
+        dependency-type: 'development'
+      discord:
+        patterns:
+          - 'discord*'
