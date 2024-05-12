@@ -1,5 +1,6 @@
-import { Client } from 'discord.js'
+import { ChatInputCommandInteraction, Client } from 'discord.js'
 import GuildPlayer from './player'
+import YouTubeClient from './youTube'
 
 /**
  * Orchestrates the management of multiple GuildPlayer instances.
@@ -7,6 +8,7 @@ import GuildPlayer from './player'
 export default class GuildPlayerOrchestrator {
   private readonly _client: Client
   private _guildPlayers: GuildPlayer[] = []
+  private _youTubeClient: YouTubeClient
 
   /**
    * Constructs a new GuildPlayerOrchestrator instance.
@@ -15,6 +17,7 @@ export default class GuildPlayerOrchestrator {
    */
   constructor(client: Client) {
     this._client = client
+    this._youTubeClient = new YouTubeClient()
   }
 
   /**
@@ -28,12 +31,36 @@ export default class GuildPlayerOrchestrator {
   init = async () => {
     const guilds = this._client.guilds.cache
     for (const guild of guilds) {
-      const guildPlayer = new GuildPlayer(this._client, guild[1])
+      const guildPlayer = new GuildPlayer(
+        this._client,
+        guild[1],
+        this._youTubeClient
+      )
       await guildPlayer.init()
 
       this._guildPlayers.push(guildPlayer)
     }
 
     console.log(`GuildPlayerOrchestrator initialized ${guilds.size} guild(s)`)
+  }
+
+  /**
+   * Query the given song or play the given YouTube link or playlist.
+   *
+   * @param interaction - The interaction sent
+   */
+
+  playSong = async (interaction: ChatInputCommandInteraction) => {
+    const guildPlayer = this._guildPlayers.find(
+      (guildPlayer) => guildPlayer.guild.id === interaction.guildId
+    )
+
+    if (guildPlayer) {
+      guildPlayer.playSong(interaction)
+    } else {
+      return interaction.editReply({
+        content: 'Something went wrong!'
+      })
+    }
   }
 }

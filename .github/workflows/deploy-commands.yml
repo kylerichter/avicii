@@ -1,0 +1,25 @@
+name: Deploy Discord Slash Commands
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
+
+jobs:
+  Deploy Commands:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Deploy Commands
+        run: npm run deploy-commands

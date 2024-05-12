@@ -12,7 +12,7 @@ export const client = new Client({
     // GatewayIntentBits.DirectMessages,
     // GatewayIntentBits.DirectMessageReactions,
     // GatewayIntentBits.DirectMessageTyping,
-    GatewayIntentBits.Guilds
+    GatewayIntentBits.Guilds,
     // GatewayIntentBits.GuildEmojisAndStickers,
     // GatewayIntentBits.GuildIntegrations,
     // GatewayIntentBits.GuildInvites,
@@ -23,7 +23,7 @@ export const client = new Client({
     // GatewayIntentBits.GuildModeration,
     // GatewayIntentBits.GuildPresences,
     // GatewayIntentBits.GuildScheduledEvents,
-    // GatewayIntentBits.GuildVoiceStates,
+    GatewayIntentBits.GuildVoiceStates
     // GatewayIntentBits.GuildWebhooks,
     // GatewayIntentBits.MessageContent
   ],
