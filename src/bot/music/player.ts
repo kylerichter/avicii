@@ -284,4 +284,23 @@ export default class GuildPlayer {
       content: `Added ${songsAdded} ${songsAdded > 1 ? 'songs' : 'song'} to queue!`
     })
   }
+
+  /**
+   * Stop the music player and destroy the connection.
+   *
+   * @param interaction - The interaction to reply to
+   * @returns Interaction reply
+   */
+  stopPlaying = async (interaction: ChatInputCommandInteraction) => {
+    if (!this._connection) {
+      return interaction.editReply({
+        content: 'Nothing is playing!'
+      })
+    }
+
+    await this._destroyConnection()
+    return interaction.editReply({
+      content: 'Stop playing!'
+    })
+  }
 }
