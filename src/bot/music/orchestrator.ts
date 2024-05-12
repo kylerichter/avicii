@@ -62,4 +62,23 @@ export default class GuildPlayerOrchestrator {
       })
     }
   }
+
+  /**
+   * Send the stop command to the correct GuildPlayer.
+   *
+   * @param interaction - The interaction sent
+   */
+  stopSong = async (interaction: ChatInputCommandInteraction) => {
+    const guildPlayer = this._guildPlayers.find(
+      (guildPlayer) => guildPlayer.guild.id === interaction.guildId
+    )
+
+    if (guildPlayer) {
+      guildPlayer.stopPlaying(interaction)
+    } else {
+      return interaction.editReply({
+        content: 'Something went wrong!'
+      })
+    }
+  }
 }
