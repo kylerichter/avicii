@@ -1,4 +1,8 @@
-import { ChatInputCommandInteraction, Client } from 'discord.js'
+import {
+  ButtonInteraction,
+  ChatInputCommandInteraction,
+  Client
+} from 'discord.js'
 import GuildPlayer from './player'
 import YouTubeClient from './youTube'
 
@@ -42,6 +46,25 @@ export default class GuildPlayerOrchestrator {
     }
 
     console.log(`GuildPlayerOrchestrator initialized ${guilds.size} guild(s)`)
+  }
+
+  /**
+   * Send the song choice button interaction to the correct GuildPlayer.
+   *
+   * @param interaction - The button interaction sent
+   */
+  addSongChoice = async (interaction: ButtonInteraction) => {
+    const guildPlayer = this._guildPlayers.find(
+      (guildPlayer) => guildPlayer.guild.id === interaction.guildId
+    )
+
+    if (guildPlayer) {
+      guildPlayer.addSongChoice(interaction)
+    } else {
+      return interaction.editReply({
+        content: 'Something went wrong!'
+      })
+    }
   }
 
   /**

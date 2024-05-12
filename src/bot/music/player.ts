@@ -11,6 +11,7 @@ import {
   joinVoiceChannel
 } from '@discordjs/voice'
 import {
+  ButtonInteraction,
   ChatInputCommandInteraction,
   Client,
   Guild,
@@ -20,6 +21,8 @@ import {
 import fs from 'node:fs'
 import path from 'path'
 import { Payload } from 'youtube-dl-exec'
+import { songChoicesEmbed } from './embeds'
+import { SongChoice } from './model'
 import YouTubeClient from './youTube'
 
 const baseFilePath = '../../files'
@@ -40,6 +43,7 @@ export default class GuildPlayer {
   private _playing = false
   private _queue: string[] = []
   private _queueIndex = 0
+  private _musicChoiceQueue: SongChoice[] = []
 
   /**
    * Constructs a new GuildPlayer instance.
@@ -146,6 +150,7 @@ export default class GuildPlayer {
 
     this._queue = []
     this._queueIndex = 0
+    this._musicChoiceQueue = []
   }
 
   /**
@@ -192,6 +197,31 @@ export default class GuildPlayer {
       : undefined
 
     return playlistResults ?? [url]
+  }
+
+  /**
+   * Send an embed of the songs returned by YouTube query.
+   *
+   * @param interaction - The interaction to reply to
+   * @param channel - The voice channel to join
+   * @param song - The song to query on YouTube
+   * @returns An embed of the YouTube search results
+   */
+  private _getSongChoices = async (
+    interaction: ChatInputCommandInteraction,
+    channel: VoiceChannel,
+    song: string
+  ) => {
+    const songChoices = await this._youTubeClient.searchYoutube(song)
+    const embed = await songChoicesEmbed(songChoices)
+    const message = await interaction.editReply(embed)
+
+    this._musicChoiceQueue.push({
+      chatInteraction: interaction,
+      channel: channel,
+      message: message,
+      songs: songChoices
+    })
   }
 
   /**
@@ -242,6 +272,51 @@ export default class GuildPlayer {
   }
 
   /**
+   * Determine the song chosen and add it to the queue.
+   *
+   * @param interaction - The button interaction to reply to
+   * @returns Interaction update
+   */
+  addSongChoice = async (interaction: ButtonInteraction) => {
+    const messageId = interaction.message.id
+    const choiceQueue = this._musicChoiceQueue.find(
+      (choiceQueue) => choiceQueue.message.id === messageId
+    )
+
+    if (!choiceQueue) {
+      return await interaction.update({
+        content: 'Something went wrong!',
+        embeds: [],
+        components: []
+      })
+    }
+
+    const { channel, songs } = choiceQueue
+    let song
+    switch (interaction.customId) {
+      case 'music_choice_one':
+        song = songs[0]
+        break
+      case 'music_choice_two':
+        song = songs[1]
+        break
+      case 'music_choice_three':
+        song = songs[2]
+        break
+    }
+
+    if (!this._player) await this._createConnection(channel)
+    await interaction.update({
+      content: 'Added song to queue',
+      embeds: [],
+      components: []
+    })
+
+    const songUrl = `https://www.youtube.com/watch?v=${song?.id.videoId}`
+    await this._addSongsToQueue([songUrl])
+  }
+
+  /**
    * Add songs to the music queue. If no song is playing and the player is not paused,
    * it will be played right away.
    *
@@ -266,7 +341,7 @@ export default class GuildPlayer {
     }
 
     if (!song.includes('youtube.com')) {
-      // TODO: get song choices
+      return await this._getSongChoices(interaction, channel, song)
     }
 
     const songUrls = await this._getSearchList(song)
