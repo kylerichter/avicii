@@ -24,6 +24,11 @@ spec:
                 secretKeyRef:
                   name: avicii-secrets
                   key: discord_token
+            - name: YOUTUBE_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: avicii-secrets
+                  key: youtube_token
             - name: SAMPLE_CONFIGMAP
               valueFrom:
                 configMapKeyRef:
