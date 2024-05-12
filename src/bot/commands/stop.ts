@@ -3,7 +3,7 @@ import { ChatInputCommandInteraction } from 'discord.js'
 
 module.exports = {
   /**
-   * Sample command to show how to create a simple slash command.
+   * Stop slash command for music player
    */
   data: new SlashCommandBuilder()
     .setName('stop')
