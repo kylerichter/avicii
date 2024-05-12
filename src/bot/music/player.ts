@@ -300,7 +300,7 @@ export default class GuildPlayer {
 
     await this._destroyConnection()
     return interaction.editReply({
-      content: 'Stop playing!'
+      content: 'Stopped playing!'
     })
   }
 }
