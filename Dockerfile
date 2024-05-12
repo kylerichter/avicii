@@ -3,14 +3,13 @@ FROM node:21-alpine AS base
 
 WORKDIR /app
 
-RUN apk add --no-cache --update python3 make g++ \
-    && ln -sf python3 /usr/bin/python
-
 # ---- Dependencies ----
 FROM base AS dependencies
 
 COPY package.json package-lock.json ./
-RUN npm install
+RUN apk add --no-cache --update python3 make g++ \
+    && ln -sf python3 /usr/bin/python \
+    && npm install
 
 # ---- Copy Files & Build ----
 FROM dependencies AS build
@@ -21,10 +20,13 @@ RUN npm run build && rm -rf ./src
 # ---- Remove devDependencies ----
 FROM build as pre-release
 
-RUN rm -rf ./node_modules && npm install --production --ignore-scripts --prefer-offline
+RUN rm -rf ./node_modules && npm install --production
 
 # ---- Release ----
 FROM base AS release
+
+RUN apk add --no-cache --update python3 \
+    && ln -sf python3 /usr/bin/python
 
 COPY --from=pre-release /app .
 
