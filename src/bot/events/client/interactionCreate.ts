@@ -1,4 +1,5 @@
 import { BaseInteraction } from 'discord.js'
+import { buttonCollector } from '../../helpers/collectors'
 
 module.exports = {
   /**
@@ -8,6 +9,7 @@ module.exports = {
    */
   name: 'interactionCreate',
   async execute(interaction: BaseInteraction) {
+    if (interaction.isButton()) return buttonCollector(interaction)
     if (!interaction.isCommand()) return
 
     const command = interaction.client.commands.get(interaction.commandName)

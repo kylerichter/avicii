@@ -1,5 +1,6 @@
 import { google, youtube_v3 } from 'googleapis'
 import youtubedl from 'youtube-dl-exec'
+import { YouTubeSearchResult } from './model'
 
 /**
  * Represents a Google YouTube client.
@@ -27,6 +28,29 @@ export default class YouTubeClient {
 
   getYoutubeInfo = async (url: string, flags?: any) => {
     return await youtubedl(url, { dumpSingleJson: true, ...flags })
+  }
+
+  /**
+   * Search YouTube API for matches to video.
+   *
+   * Search - list: {@link https://developers.google.com/youtube/v3/docs/search/list}
+   *
+   * @param song - The song query
+   * @returns List of search results from YouTube
+   */
+  searchYoutube = async (song: string) => {
+    const query = song + ' explicit lyrics'
+    const response = await this._youtubeClient.search.list({
+      part: ['snippet'],
+      maxResults: 3,
+      q: query,
+      safeSearch: 'none',
+      topicId: '/m/04rlf',
+      type: ['video'],
+      auth: this._youtubeToken
+    })
+
+    return response.data.items as YouTubeSearchResult[]
   }
 
   /**
