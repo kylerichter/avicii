@@ -22,7 +22,7 @@ import path from 'path'
 import { Payload } from 'youtube-dl-exec'
 import YouTubeClient from './youTube'
 
-const baseFilePath = path.join(__dirname, '../../files')
+const baseFilePath = '../../files'
 
 /**
  * Represents a music player bound to a single guild.
@@ -156,21 +156,21 @@ export default class GuildPlayer {
    */
   private _downloadSong = async (songInfo: Payload) => {
     await fs.promises.writeFile(
-      `${baseFilePath}/videoInfo-${songInfo.id}.json`,
+      path.join(__dirname, `${baseFilePath}/videoInfo-${songInfo.id}.json`),
       JSON.stringify(songInfo)
     )
 
     await this._youTubeClient.getFromInfo(
-      `${baseFilePath}/videoInfo-${songInfo.id}.json`,
+      path.join(__dirname, `${baseFilePath}/videoInfo-${songInfo.id}.json`),
       {
         listThumbnails: true
       }
     )
 
     await this._youTubeClient.getFromInfo(
-      `${baseFilePath}/videoInfo-${songInfo.id}.json`,
+      path.join(__dirname, `${baseFilePath}/videoInfo-${songInfo.id}.json`),
       {
-        output: `${baseFilePath}/song-${songInfo.id}.webm`
+        output: path.join(__dirname, `${baseFilePath}/song-${songInfo.id}.webm`)
       }
     )
   }
@@ -218,8 +218,11 @@ export default class GuildPlayer {
    */
   private _playSong = async () => {
     const songId = this._queue[this._queueIndex]
-    const webmFilePath = `${baseFilePath}/song-${songId}.webm`
-    const mkvFilePath = `${baseFilePath}/song-${songId}.webm.mkv`
+
+    //prettier-ignore
+    const webmFilePath = path.join(__dirname,`${baseFilePath}/song-${songId}.webm`)
+    //prettier-ignore
+    const mkvFilePath = path.join(__dirname,`${baseFilePath}/song-${songId}.webm.mkv`)
 
     let songFilePath: string
     let inputType: StreamType
