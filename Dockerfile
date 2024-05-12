@@ -3,6 +3,9 @@ FROM node:21-alpine AS base
 
 WORKDIR /app
 
+RUN apk add --no-cache --update python3 make g++ \
+    && ln -sf python3 /usr/bin/python
+
 # ---- Dependencies ----
 FROM base AS dependencies
 

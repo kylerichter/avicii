@@ -45,11 +45,10 @@ export default class GuildPlayerOrchestrator {
   }
 
   /**
-   * Query the given song or play the given YouTube link or playlist.
+   * Send the play command to the correct GuildPlayer.
    *
    * @param interaction - The interaction sent
    */
-
   playSong = async (interaction: ChatInputCommandInteraction) => {
     const guildPlayer = this._guildPlayers.find(
       (guildPlayer) => guildPlayer.guild.id === interaction.guildId
