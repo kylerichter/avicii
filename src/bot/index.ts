@@ -1,5 +1,6 @@
 import { Client, GatewayIntentBits } from 'discord.js'
 
+import PrismaController from '../services/db/controller'
 import { checkEnv } from './helpers/checkEnv'
 import { loadCommands } from './helpers/commandLoader'
 import { loadEvents } from './helpers/eventLoader'
@@ -42,6 +43,7 @@ loadCommands(client)
 loadEvents(client)
 
 client.guildPlayerOrchestrator = new GuildPlayerOrchestrator(client)
+client.db = new PrismaController()
 
 const login = async () => {
   try {
