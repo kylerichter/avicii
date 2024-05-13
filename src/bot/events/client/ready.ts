@@ -15,6 +15,11 @@ module.exports = {
       let guilds = ''
       for (const guild of client.guilds.cache) {
         guilds += `${guild[1].name}, `
+
+        const guildData = await client.db.getGuild(guild[0])
+        if (!guildData) {
+          await client.db.addGuild(guild[0], guild[1].joinedAt)
+        }
       }
 
       console.log(`Ready! Logged in as ${user?.tag} at ${readyAt}`)
