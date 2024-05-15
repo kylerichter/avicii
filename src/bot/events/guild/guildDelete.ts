@@ -9,6 +9,8 @@ module.exports = {
   name: 'guildDelete',
   async execute(guild: Guild) {
     try {
+      await guild.client.db.deleteGuild(guild.id)
+
       const currentTime = new Date().toLocaleString('en-US', {
         timeZone: 'America/Chicago'
       })

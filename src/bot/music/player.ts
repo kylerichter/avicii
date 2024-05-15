@@ -21,7 +21,7 @@ import {
 import fs from 'node:fs'
 import path from 'path'
 import { Payload } from 'youtube-dl-exec'
-import { songChoicesEmbed } from './embeds'
+import { songChoicesEmbed } from './embed'
 import { SongChoice } from './model'
 import YouTubeClient from './youTube'
 

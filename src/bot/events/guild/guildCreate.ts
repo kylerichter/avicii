@@ -9,6 +9,8 @@ module.exports = {
   name: 'guildCreate',
   async execute(guild: Guild) {
     try {
+      await guild.client.db.addGuild(guild.id, guild.joinedAt)
+
       const currentTime = new Date().toLocaleString('en-US', {
         timeZone: 'America/Chicago'
       })

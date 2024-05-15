@@ -23,3 +23,35 @@ SOPS encrypting files:
 cd kubernetes/secrets
 sops --encrypt <file-name>.yml > <file-name>.enc.yml
 ```
+
+# Prisma ORM
+
+Initialize Prisma:
+
+```shell
+npx prisma init
+```
+
+Create schema migration:
+
+```shell
+npx prisma migrate dev --name <migration-name>
+```
+
+Deploy schema changes:
+
+```shell
+npx prisma migrate deploy
+```
+
+Generate Prisma Client:
+
+```shell
+npx prisma generate
+```
+
+Browse data:
+
+```shell
+npx prisma studio
+```
