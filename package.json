@@ -8,7 +8,8 @@
   "license": "UNLICENSED",
   "private": true,
   "scripts": {
-    "build": "rm -rf ./dist && tsc && npm run generate-prisma && mkdir dist/files",
+    "postinstall": "npm run generate-prisma",
+    "build": "rm -rf ./dist && tsc && mkdir dist/files",
     "start": "node dist/bot/index.js",
     "deploy-commands": "node dist/deploy-commands.js",
     "generate-prisma": "npx prisma generate"

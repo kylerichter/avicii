@@ -20,7 +20,7 @@ RUN npm run build && rm -rf ./src
 # ---- Remove devDependencies ----
 FROM build as pre-release
 
-RUN rm -rf ./node_modules && npm install --production && npm run generate-prisma
+RUN rm -rf ./node_modules && npm install --production
 
 # ---- Release ----
 FROM base AS release
