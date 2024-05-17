@@ -24,6 +24,11 @@ spec:
                 secretKeyRef:
                   name: avicii-secrets
                   key: discord_token
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: avicii-secrets
+                  key: postgres_url
             - name: YOUTUBE_TOKEN
               valueFrom:
                 secretKeyRef:
