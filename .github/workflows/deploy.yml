@@ -7,7 +7,7 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
-  KUBE_CLUSTER: k3s
+  KUBE_CLUSTER: microk8s
   REPO_NAME: avicii
   TOKEN: ${{ secrets.TOKEN }}
 
@@ -49,8 +49,8 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           provenance: false
-          platforms: |
-            linux/arm64
+          # platforms: |
+          #   linux/arm64
 
   Deploy:
     runs-on: ubuntu-latest

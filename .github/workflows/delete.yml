@@ -5,7 +5,7 @@ on:
 
 env:
   IMAGE_NAME: ${{ github.repository }}
-  KUBE_CLUSTER: k3s
+  KUBE_CLUSTER: microk8s
   REPO_NAME: avicii
   TOKEN: ${{ secrets.TOKEN }}
 
