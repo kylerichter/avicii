@@ -104,4 +104,23 @@ export default class GuildPlayerOrchestrator {
       })
     }
   }
+
+  /**
+   * Send the pause/resume button interaction to the correct GuildPlayer.
+   *
+   * @param interaction - The button interaction sent
+   */
+  toggleSong = async (interaction: ButtonInteraction) => {
+    const guildPlayer = this._guildPlayers.find(
+      (guildPlayer) => guildPlayer.guild.id === interaction.guildId
+    )
+
+    if (guildPlayer) {
+      guildPlayer.toggleSong(interaction)
+    } else {
+      return interaction.editReply({
+        content: 'Something went wrong!'
+      })
+    }
+  }
 }
