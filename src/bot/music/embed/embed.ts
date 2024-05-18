@@ -19,7 +19,7 @@ const getMusicEmbeds = async (channel: TextChannel) => {
 
   const messages = await channel.messages.fetch({ limit: 2 })
   for (const message of messages) {
-    const { author } = message[1].embeds[0]
+    const author = message[1]?.embeds[0]?.author
     if (author?.name === 'Now Playing') {
       nowPlayingEmbed = message[1]
     }
