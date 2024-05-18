@@ -7,6 +7,14 @@ import {
   VoiceChannel
 } from 'discord.js'
 
+export type Song = {
+  title: string
+  id: string
+  url: string
+  thumbnail: string
+  user: string
+}
+
 export type SongChoice = {
   chatInteraction: ChatInputCommandInteraction
   channel: VoiceChannel
