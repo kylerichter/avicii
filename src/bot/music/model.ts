@@ -10,6 +10,7 @@ import {
 export type Song = {
   title: string
   id: string
+  duration: number
   url: string
   thumbnail: string
   user: string

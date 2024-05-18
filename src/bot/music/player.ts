@@ -116,6 +116,7 @@ export default class GuildPlayer {
       this._queue.push({
         title: songInfo.title,
         id: songInfo.id,
+        duration: songInfo.duration,
         url: songInfo.webpage_url,
         thumbnail: songInfo.thumbnail,
         user: user
