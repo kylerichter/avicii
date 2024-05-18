@@ -7,6 +7,8 @@ metadata:
     app: avicii
 spec:
   replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: avicii
@@ -15,6 +17,7 @@ spec:
       labels:
         app: avicii
     spec:
+      terminationGracePeriodSeconds: 600
       containers:
         - name: avicii
           image: ghcr.io/kylerichter/avicii

@@ -36,6 +36,8 @@ const baseFilePath = '../../files'
 export default class GuildPlayer {
   guild: Guild
   private readonly _client: Client
+  private _shutdownTimestamp = 0
+  private _takeRequests = true
   private _youTubeClient: YouTubeClient
 
   private _connection?: VoiceConnection
@@ -343,6 +345,25 @@ export default class GuildPlayer {
   }
 
   /**
+   * Return if the player is currently playing.
+   *
+   * @returns True if the player is playing, otherwise False
+   */
+  isPlaying = () => {
+    return this._playing
+  }
+
+  /**
+   * Return if the player is currently playing.
+   *
+   * @returns True if the player is playing, otherwise False
+   */
+  processShutdown = () => {
+    this._takeRequests = false
+    this._shutdownTimestamp = Date.now()
+  }
+
+  /**
    * Determine the song chosen and add it to the queue.
    *
    * @param interaction - The button interaction to reply to
@@ -436,6 +457,12 @@ export default class GuildPlayer {
     if (!channel) {
       return interaction.editReply({
         content: 'You must be connected to a voice channel!'
+      })
+    }
+
+    if (!this._takeRequests) {
+      return interaction.editReply({
+        content: `No more requests can be taken. The bot will restart <t:${Math.floor((this._shutdownTimestamp + 10 * 60 * 1000) / 1000)}:R>`
       })
     }
 

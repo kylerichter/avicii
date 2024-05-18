@@ -45,6 +45,18 @@ loadEvents(client)
 client.guildPlayerOrchestrator = new GuildPlayerOrchestrator(client)
 client.db = new PrismaController()
 
+const handleShutdown = async () => {
+  console.log('Received SIGTERM. Waiting up to 10 minutes for songs to finish.')
+
+  if (client.guildPlayerOrchestrator.isPlaying()) {
+    await client.guildPlayerOrchestrator.processShutdown()
+  }
+
+  process.exit(0)
+}
+
+process.on('SIGTERM', handleShutdown)
+
 const login = async () => {
   try {
     await client.login(process.env.DISCORD_TOKEN)

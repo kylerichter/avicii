@@ -49,6 +49,36 @@ export default class GuildPlayerOrchestrator {
   }
 
   /**
+   * Check if any GuildPlayer instances are playing.
+   *
+   * @returns True if any guild players are playing, otherwise False
+   */
+  isPlaying = () => {
+    for (const player of this._guildPlayers) {
+      if (player.isPlaying()) {
+        return true
+      }
+    }
+
+    return false
+  }
+
+  /**
+   * Initiate a shutdown.
+   * Signal all GuildPlayer instances to stop taking requests.
+   * Wait for all songs to finish playing.
+   */
+  processShutdown = async () => {
+    for (const guildPlayer of this._guildPlayers) {
+      guildPlayer.processShutdown()
+    }
+
+    while (this.isPlaying()) {
+      await new Promise((r) => setTimeout(r, 5000)) // 5 second backoff
+    }
+  }
+
+  /**
    * Send the song choice button interaction to the correct GuildPlayer.
    *
    * @param interaction - The button interaction sent
