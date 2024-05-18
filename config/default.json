@@ -1,6 +1,11 @@
 {
   "clientId": "1218429152466567250",
   "requiredEnv": ["DISCORD_TOKEN", "DATABASE_URL", "YOUTUBE_TOKEN"],
+  "emojis": {
+    "animatedLeftArrow": "1241166095315112026",
+    "animatedRightArrow": "1241166142576525473",
+    "playstationLogo": "1241165382044090438"
+  },
   "enableEvent": {
     "debug": true,
     "error": true,

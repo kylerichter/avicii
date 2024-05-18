@@ -16,13 +16,16 @@ import {
   Client,
   Guild,
   GuildMember,
+  Message,
+  TextChannel,
   VoiceChannel
 } from 'discord.js'
 import fs from 'node:fs'
 import path from 'path'
 import { Payload } from 'youtube-dl-exec'
-import { songChoicesEmbed } from './embed'
-import { SongChoice } from './model'
+import embed from './embed/embed'
+import row from './embed/row'
+import { Song, SongChoice } from './model'
 import YouTubeClient from './youTube'
 
 const baseFilePath = '../../files'
@@ -41,9 +44,12 @@ export default class GuildPlayer {
 
   private _paused = false
   private _playing = false
-  private _queue: string[] = []
+  private _queue: Song[] = []
   private _queueIndex = 0
   private _musicChoiceQueue: SongChoice[] = []
+
+  private _musicChannel?: TextChannel
+  private _nowPlayingEmbed?: Message
 
   /**
    * Constructs a new GuildPlayer instance.
@@ -59,12 +65,32 @@ export default class GuildPlayer {
 
   /**
    * Initalize GuildPlayer instance.
+   * Set the music channel and now playing embed internally.
    *
    * @remarks
    *
    * This method should be called after constructing GuildPlayer to perform setup.
    */
   init = async () => {
+    const guildData = await this._client.db.getGuild(this.guild.id)
+    if (!guildData) return
+
+    const { musicChannelId } = guildData
+    if (!musicChannelId) return
+
+    const channel = this._client.channels.cache.get(musicChannelId)
+    if (channel) {
+      this._musicChannel = channel as TextChannel
+      this._nowPlayingEmbed = await embed.getMusicEmbeds(this._musicChannel)
+    }
+
+    if (this._nowPlayingEmbed) {
+      await this._nowPlayingEmbed.edit({
+        embeds: [await embed.nothingPlaying()],
+        components: [await row.resume()]
+      })
+    }
+
     console.log(`GuildPlayer initialized for ${this.guild.name}`)
   }
 
@@ -72,9 +98,10 @@ export default class GuildPlayer {
    * Add song(s) to queue and start playing if no song is currently playing or paused.
    *
    * @param urls - The list of song(s) to add
+   * @param user - The user that requested the song
    * @returns Number of songs added to queue
    */
-  private _addSongsToQueue = async (urls: string[]) => {
+  private _addSongsToQueue = async (urls: string[], user: string) => {
     let songsAdded = 0
     for (const url of urls) {
       try {
@@ -86,7 +113,13 @@ export default class GuildPlayer {
 
       await this._downloadSong(songInfo)
 
-      this._queue.push(songInfo.id)
+      this._queue.push({
+        title: songInfo.title,
+        id: songInfo.id,
+        url: songInfo.webpage_url,
+        thumbnail: songInfo.thumbnail,
+        user: user
+      })
       songsAdded++
 
       if (!this._playing && !this._paused) {
@@ -130,7 +163,7 @@ export default class GuildPlayer {
   }
 
   /**
-   * Destroy the currect connection and set the player to a clean state.
+   * Destroy the current connection and set the player to a clean state.
    *
    * @returns None
    */
@@ -151,6 +184,11 @@ export default class GuildPlayer {
     this._queue = []
     this._queueIndex = 0
     this._musicChoiceQueue = []
+
+    await this._nowPlayingEmbed?.edit({
+      embeds: [await embed.nothingPlaying()],
+      components: [await row.resume()]
+    })
   }
 
   /**
@@ -213,8 +251,8 @@ export default class GuildPlayer {
     song: string
   ) => {
     const songChoices = await this._youTubeClient.searchYoutube(song)
-    const embed = await songChoicesEmbed(songChoices)
-    const message = await interaction.editReply(embed)
+    const songChoiceEmbed = await embed.songChoicesEmbed(songChoices)
+    const message = await interaction.editReply(songChoiceEmbed)
 
     this._musicChoiceQueue.push({
       chatInteraction: interaction,
@@ -243,16 +281,17 @@ export default class GuildPlayer {
 
   /**
    * Play the song at the current index in the queue.
+   * Update the now playing embed with the current song.
    *
    * @returns None
    */
   private _playSong = async () => {
-    const songId = this._queue[this._queueIndex]
+    const song = this._queue[this._queueIndex]
 
     //prettier-ignore
-    const webmFilePath = path.join(__dirname,`${baseFilePath}/song-${songId}.webm`)
+    const webmFilePath = path.join(__dirname,`${baseFilePath}/song-${song.id}.webm`)
     //prettier-ignore
-    const mkvFilePath = path.join(__dirname,`${baseFilePath}/song-${songId}.webm.mkv`)
+    const mkvFilePath = path.join(__dirname,`${baseFilePath}/song-${song.id}.webm.mkv`)
 
     let songFilePath: string
     let inputType: StreamType
@@ -269,6 +308,11 @@ export default class GuildPlayer {
     const resource = createAudioResource(songFilePath, { inputType })
     this._player?.play(resource)
     this._playing = true
+
+    await this._nowPlayingEmbed?.edit({
+      embeds: [await embed.nowPlaying(song)],
+      components: [await row.pause()]
+    })
   }
 
   /**
@@ -313,7 +357,7 @@ export default class GuildPlayer {
     })
 
     const songUrl = `https://www.youtube.com/watch?v=${song?.id.videoId}`
-    await this._addSongsToQueue([songUrl])
+    await this._addSongsToQueue([songUrl], interaction.user.username)
   }
 
   /**
@@ -353,7 +397,10 @@ export default class GuildPlayer {
 
     if (!this._player) await this._createConnection(channel)
 
-    const songsAdded = await this._addSongsToQueue(songUrls)
+    const songsAdded = await this._addSongsToQueue(
+      songUrls,
+      interaction.user.username
+    )
 
     return interaction.editReply({
       content: `Added ${songsAdded} ${songsAdded > 1 ? 'songs' : 'song'} to queue!`
