@@ -446,6 +446,34 @@ export default class GuildPlayer {
   }
 
   /**
+   * Skip current playing song, stop playing if last song in queue.
+   *
+   * @param interaction - The button interaction to reply to
+   * @returns Interaction reply
+   */
+  skipSong = async (interaction: ButtonInteraction) => {
+    if (!this._player) {
+      return interaction.editReply({
+        content: 'Nothing is playing!'
+      })
+    }
+
+    if (this._queueIndex < this._queue.length - 1) {
+      this._queueIndex++
+      await this._playSong()
+
+      return interaction.editReply({
+        content: 'Skipped song!'
+      })
+    }
+
+    await this._destroyConnection()
+    return interaction.editReply({
+      content: 'Stopped playing!'
+    })
+  }
+
+  /**
    * Stop the music player and destroy the connection.
    *
    * @param interaction - The interaction to reply to

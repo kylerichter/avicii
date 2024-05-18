@@ -30,6 +30,8 @@ const _musicCollector = async (interaction: ButtonInteraction) => {
       await client.guildPlayerOrchestrator.toggleSong(interaction)
       break
     case 'music_skip':
+      await interaction.deferReply({ ephemeral: true })
+      await client.guildPlayerOrchestrator.skipSong(interaction)
       break
   }
 }
