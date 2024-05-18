@@ -425,4 +425,50 @@ export default class GuildPlayer {
       content: 'Stopped playing!'
     })
   }
+
+  /**
+   * Pause/resume the current playing song.
+   * Update the now playing embed buttons appropriately.
+   *
+   * @param interaction - The button interaction to reply to
+   * @returns Interaction update
+   */
+  toggleSong = async (interaction: ButtonInteraction) => {
+    if (!this._player) {
+      return await interaction.editReply({
+        content: 'Nothing is currently playing! Add a song with `/play`'
+      })
+    }
+
+    const embed = this._nowPlayingEmbed?.embeds[0]
+    if (!embed) return
+
+    if (this._paused) {
+      this._player?.unpause()
+      this._paused = false
+      this._playing = true
+
+      await this._nowPlayingEmbed?.edit({
+        embeds: [embed],
+        components: [await row.pause()]
+      })
+
+      await interaction.editReply({
+        content: 'Resumed playing!'
+      })
+    } else {
+      this._player?.pause()
+      this._paused = true
+      this._playing = false
+
+      await this._nowPlayingEmbed?.edit({
+        embeds: [embed],
+        components: [await row.resume()]
+      })
+
+      await interaction.editReply({
+        content: 'Paused song!'
+      })
+    }
+  }
 }
