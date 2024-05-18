@@ -9,30 +9,46 @@ import { Song, SongChoicesEmbed, YouTubeSearchResult } from '../model'
 import row from './row'
 
 /**
- * Get the now playing embed for a given channel.
- * If it doesn't exist, create one.
+ * Get the now playing and queue embed for a given channel.
+ * If they don't exist, create them.
  *
- * @returns A message containing the now playing embed
+ * @param channel - The channel to get the embeds from
+ * @returns An object containing the now playing and queue embed messages
  */
 const getMusicEmbeds = async (channel: TextChannel) => {
-  let nowPlayingEmbed
+  let nowPlaying, queue
 
   const messages = await channel.messages.fetch({ limit: 2 })
   for (const message of messages) {
     const author = message[1]?.embeds[0]?.author
+    const title = message[1]?.embeds[0]?.title
     if (author?.name === 'Now Playing') {
-      nowPlayingEmbed = message[1]
+      nowPlaying = message[1]
+    }
+
+    if (title === 'Queue') {
+      queue = message[1]
     }
   }
 
-  if (!nowPlayingEmbed) {
-    nowPlayingEmbed = await channel.send({
+  if (!nowPlaying) {
+    nowPlaying = await channel.send({
       embeds: [await nothingPlaying()],
       components: [await row.resume()]
     })
+
+    queue = await channel.send({
+      embeds: [await queueEmbed([], 0)]
+    })
   }
 
-  return nowPlayingEmbed
+  if (!queue) {
+    queue = await channel.send({
+      embeds: [await queueEmbed([], 0)]
+    })
+  }
+
+  return { nowPlayingEmbed: nowPlaying, queueEmbed: queue }
 }
 
 /**
@@ -61,6 +77,44 @@ const nowPlaying = async (song: Song) => {
     .setURL(song.url)
     .setThumbnail(song.thumbnail)
     .setFooter({ text: song.user })
+}
+
+/**
+ * Create a queue embed with the given song queue.
+ * Display up to the next 3 songs.
+ *
+ * @param queue - The song queue
+ * @param index - The current queue index
+ * @returns A queue embed
+ */
+const queueEmbed = async (queue: Song[], index: number) => {
+  const embed = new EmbedBuilder().setColor('#d0342c').setTitle('Queue')
+
+  let queueString = ''
+  const nextSongs = queue.slice(index + 1, index + 4)
+  // prettier-ignore
+  const nextSongsCnt = Math.max(0, queue.length - 1 - (index + nextSongs.length))
+
+  if (nextSongs.length >= 1) {
+    queueString += '**Next in Queue**\n\n'
+
+    let cnt = 1
+    nextSongs.forEach((song) => {
+      queueString += `${cnt}. ${song.title}\n\n`
+      cnt++
+    })
+
+    if (nextSongsCnt > 0) {
+      queueString += `+ ${nextSongsCnt} other song(s)`
+    }
+  }
+
+  if (queueString) {
+    embed.setDescription(queueString)
+  } else {
+    embed.setDescription('Nothing in Queue')
+  }
+  return embed
 }
 
 /**
@@ -108,4 +162,10 @@ const songChoicesEmbed = async (
   return { embeds: [embed], components: [buttonRow] }
 }
 
-export default { getMusicEmbeds, nothingPlaying, nowPlaying, songChoicesEmbed }
+export default {
+  getMusicEmbeds,
+  nothingPlaying,
+  nowPlaying,
+  queueEmbed,
+  songChoicesEmbed
+}

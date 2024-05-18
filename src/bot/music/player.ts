@@ -52,6 +52,7 @@ export default class GuildPlayer {
 
   private _musicChannel?: TextChannel
   private _nowPlayingEmbed?: Message
+  private _queueEmbed?: Message
 
   /**
    * Constructs a new GuildPlayer instance.
@@ -83,13 +84,23 @@ export default class GuildPlayer {
     const channel = this._client.channels.cache.get(musicChannelId)
     if (channel) {
       this._musicChannel = channel as TextChannel
-      this._nowPlayingEmbed = await embed.getMusicEmbeds(this._musicChannel)
+      const { nowPlayingEmbed, queueEmbed } = await embed.getMusicEmbeds(
+        this._musicChannel
+      )
+      this._nowPlayingEmbed = nowPlayingEmbed
+      this._queueEmbed = queueEmbed
     }
 
     if (this._nowPlayingEmbed) {
       await this._nowPlayingEmbed.edit({
         embeds: [await embed.nothingPlaying()],
         components: [await row.resume()]
+      })
+    }
+
+    if (this._queueEmbed) {
+      await this._queueEmbed.edit({
+        embeds: [await embed.queueEmbed([], 0)]
       })
     }
 
@@ -128,6 +139,10 @@ export default class GuildPlayer {
       if (!this._playing && !this._paused) {
         await this._playSong()
       }
+
+      await this._queueEmbed?.edit({
+        embeds: [await embed.queueEmbed(this._queue, this._queueIndex)]
+      })
     }
 
     return songsAdded
@@ -191,6 +206,10 @@ export default class GuildPlayer {
     await this._nowPlayingEmbed?.edit({
       embeds: [await embed.nothingPlaying()],
       components: [await row.resume()]
+    })
+
+    await this._queueEmbed?.edit({
+      embeds: [await embed.queueEmbed([], 0)]
     })
   }
 
@@ -316,6 +335,10 @@ export default class GuildPlayer {
     await this._nowPlayingEmbed?.edit({
       embeds: [await embed.nowPlaying(song)],
       components: [await row.pause()]
+    })
+
+    await this._queueEmbed?.edit({
+      embeds: [await embed.queueEmbed(this._queue, this._queueIndex)]
     })
   }
 
