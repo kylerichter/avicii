@@ -22,12 +22,16 @@ const buttonCollector = async (interaction: ButtonInteraction) => {
 const _musicCollector = async (interaction: ButtonInteraction) => {
   switch (interaction.customId) {
     case 'music_back':
+      await interaction.deferReply({ ephemeral: true })
+      await client.guildPlayerOrchestrator.backSong(interaction)
       break
     case 'music_toggle':
       await interaction.deferReply({ ephemeral: true })
       await client.guildPlayerOrchestrator.toggleSong(interaction)
       break
     case 'music_skip':
+      await interaction.deferReply({ ephemeral: true })
+      await client.guildPlayerOrchestrator.skipSong(interaction)
       break
   }
 }
