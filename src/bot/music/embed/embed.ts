@@ -81,7 +81,7 @@ const nowPlaying = async (song: Song) => {
 
 /**
  * Create a queue embed with the given song queue.
- * Display up to the next 3 songs.
+ * Display up to the next 3 songs and the last 2 songs.
  *
  * @param queue - The song queue
  * @param index - The current queue index
@@ -91,6 +91,23 @@ const queueEmbed = async (queue: Song[], index: number) => {
   const embed = new EmbedBuilder().setColor('#d0342c').setTitle('Queue')
 
   let queueString = ''
+  const previousSongs = queue.slice(Math.max(0, index - 2), index)
+  const previousSongsCnt = Math.max(0, index - previousSongs.length)
+
+  if (previousSongs.length >= 1) {
+    let cnt = previousSongs.length
+    queueString += '**Song History**\n\n'
+
+    if (previousSongsCnt > 0) {
+      queueString += `+ ${previousSongsCnt} other song(s)\n\n`
+    }
+
+    previousSongs.forEach((song) => {
+      queueString += `${cnt}. ${song.title}\n\n`
+      cnt--
+    })
+  }
+
   const nextSongs = queue.slice(index + 1, index + 4)
   // prettier-ignore
   const nextSongsCnt = Math.max(0, queue.length - 1 - (index + nextSongs.length))
