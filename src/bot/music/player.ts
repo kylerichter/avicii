@@ -44,6 +44,8 @@ export default class GuildPlayer {
 
   private _paused = false
   private _playing = false
+  private _playTimestamp = 0
+
   private _queue: Song[] = []
   private _queueIndex = 0
   private _musicChoiceQueue: SongChoice[] = []
@@ -308,6 +310,7 @@ export default class GuildPlayer {
 
     const resource = createAudioResource(songFilePath, { inputType })
     this._player?.play(resource)
+    this._playTimestamp = Date.now()
     this._playing = true
 
     await this._nowPlayingEmbed?.edit({
@@ -359,6 +362,40 @@ export default class GuildPlayer {
 
     const songUrl = `https://www.youtube.com/watch?v=${song?.id.videoId}`
     await this._addSongsToQueue([songUrl], interaction.user.username)
+  }
+
+  /**
+   * Restart current playing song or go back to previous song.
+   * If within 10 seconds of playTimestamp go back, else restart current song.
+   *
+   * @param interaction - The button interaction to reply to
+   * @returns Interaction reply
+   */
+  backSong = async (interaction: ButtonInteraction) => {
+    if (!this._player) {
+      return interaction.editReply({
+        content: 'Nothing is playing!'
+      })
+    }
+
+    let reply = 'Restarted Song!'
+    const timeDiff = (Date.now() - this._playTimestamp) / 1000
+    if (timeDiff < 10) {
+      if (this._queueIndex === 0) {
+        return interaction.editReply({
+          content: "Can't go back any further!"
+        })
+      }
+
+      reply = 'Went back a song!'
+      this._queueIndex--
+    }
+
+    await this._playSong()
+
+    return interaction.editReply({
+      content: reply
+    })
   }
 
   /**
