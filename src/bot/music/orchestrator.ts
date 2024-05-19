@@ -4,6 +4,7 @@ import {
   Client
 } from 'discord.js'
 import GuildPlayer from './player'
+import SpotifyClient from './spotify'
 import YouTubeClient from './youTube'
 
 /**
@@ -12,6 +13,7 @@ import YouTubeClient from './youTube'
 export default class GuildPlayerOrchestrator {
   private readonly _client: Client
   private _guildPlayers: GuildPlayer[] = []
+  private _spotifyClient: SpotifyClient
   private _youTubeClient: YouTubeClient
 
   /**
@@ -21,6 +23,7 @@ export default class GuildPlayerOrchestrator {
    */
   constructor(client: Client) {
     this._client = client
+    this._spotifyClient = new SpotifyClient()
     this._youTubeClient = new YouTubeClient()
   }
 
@@ -38,6 +41,7 @@ export default class GuildPlayerOrchestrator {
       const guildPlayer = new GuildPlayer(
         this._client,
         guild[1],
+        this._spotifyClient,
         this._youTubeClient
       )
       await guildPlayer.init()

@@ -1,6 +1,12 @@
 {
   "clientId": "1218429152466567250",
-  "requiredEnv": ["DISCORD_TOKEN", "DATABASE_URL", "YOUTUBE_TOKEN"],
+  "requiredEnv": [
+    "DISCORD_TOKEN",
+    "DATABASE_URL",
+    "SPOTIFY_CLIENT_ID",
+    "SPOTIFY_CLIENT_SECRET",
+    "YOUTUBE_TOKEN"
+  ],
   "emojis": {
     "animatedLeftArrow": "1241166095315112026",
     "animatedRightArrow": "1241166142576525473",

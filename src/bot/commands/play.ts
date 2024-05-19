@@ -11,7 +11,7 @@ module.exports = {
     .addStringOption((option) =>
       option
         .setName('song')
-        .setDescription('Song name or URL to YouTube song/playlist')
+        .setDescription('Search query, YouTube URL, or Spotify URL')
         .setRequired(true)
     ),
   async execute(interaction: ChatInputCommandInteraction) {

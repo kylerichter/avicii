@@ -26,6 +26,7 @@ import { Payload } from 'youtube-dl-exec'
 import embed from './embed/embed'
 import row from './embed/row'
 import { Song, SongChoice } from './model'
+import SpotifyClient from './spotify'
 import YouTubeClient from './youTube'
 
 const baseFilePath = '../../files'
@@ -38,6 +39,7 @@ export default class GuildPlayer {
   private readonly _client: Client
   private _shutdownTimestamp = 0
   private _takeRequests = true
+  private _spotifyClient: SpotifyClient
   private _youTubeClient: YouTubeClient
 
   private _connection?: VoiceConnection
@@ -61,10 +63,18 @@ export default class GuildPlayer {
    *
    * @param client - The Client
    * @param guild - The guild for which to initialize a player
+   * @param spotifyClient - A Spotify client
+   * @param youTubeClient - A YouTube client
    */
-  constructor(client: Client, guild: Guild, youTubeClient: YouTubeClient) {
+  constructor(
+    client: Client,
+    guild: Guild,
+    spotifyClient: SpotifyClient,
+    youTubeClient: YouTubeClient
+  ) {
     this._client = client
     this.guild = guild
+    this._spotifyClient = spotifyClient
     this._youTubeClient = youTubeClient
   }
 
@@ -244,21 +254,17 @@ export default class GuildPlayer {
 
   /**
    * Get the list of songs to search on YouTube.
-   * If given a YouTube link to a playlist, get all the songs in the playlist.
+   * If given a playlist link, get all the songs in the playlist.
    *
-   * @param url - The song or playlist to search on YouTube
-   * @returns Array of song(s) to search
+   * @param url - The song or playlist to search
+   * @returns List of YouTube song urls
    */
   private _getSearchList = async (url: string) => {
-    const playlistId = url.includes('&list=')
-      ? url.split('&list=')[1].split('&index=')[0]
-      : undefined
-
-    const playlistResults = playlistId
-      ? await this._youTubeClient.searchYoutubePlaylist(playlistId)
-      : undefined
-
-    return playlistResults ?? [url]
+    if (url.includes('spotify.com')) {
+      return await this._getSpotifySearchList(url)
+    } else {
+      return await this._getYoutubeSearchList(url)
+    }
   }
 
   /**
@@ -284,6 +290,45 @@ export default class GuildPlayer {
       message: message,
       songs: songChoices
     })
+  }
+
+  /**
+   * Get the list of songs to search on YouTube from a Spotify playlist.
+   *
+   * @param url - The playlist to search
+   * @returns List of YouTube song urls
+   */
+  private _getSpotifySearchList = async (url: string) => {
+    const playlistResults = []
+    const playlistId = url.split('playlist/')[1].split('?si=')[0]
+    const playlist = await this._spotifyClient.getPlaylistItems(playlistId)
+
+    for (const song of playlist) {
+      const songChoices = await this._youTubeClient.searchYoutube(song)
+      const songUrl = `https://www.youtube.com/watch?v=${songChoices[0]?.id.videoId}`
+      playlistResults.push(songUrl)
+    }
+
+    return playlistResults
+  }
+
+  /**
+   * Get the list of songs to search on YouTube.
+   * If given a playlist link, get all the songs in the playlist.
+   *
+   * @param url - The song or playlist to search
+   * @returns List of YouTube song urls
+   */
+  private _getYoutubeSearchList = async (url: string) => {
+    const playlistId = url.includes('&list=')
+      ? url.split('&list=')[1].split('&index=')[0]
+      : undefined
+
+    const playlistResults = playlistId
+      ? await this._youTubeClient.searchYoutubePlaylist(playlistId)
+      : undefined
+
+    return playlistResults ?? [url]
   }
 
   /**
@@ -472,7 +517,7 @@ export default class GuildPlayer {
       })
     }
 
-    if (!song.includes('youtube.com')) {
+    if (!song.includes('youtube.com') && !song.includes('spotify.com')) {
       return await this._getSongChoices(interaction, channel, song)
     }
 

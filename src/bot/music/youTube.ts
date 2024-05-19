@@ -11,9 +11,6 @@ export default class YouTubeClient {
 
   /**
    * Constructs a new YouTubeClient instance.
-   *
-   * @param client - The Client
-   * @param guild - The guild for which to initialize a player
    */
   constructor() {
     this._youtubeClient = google.youtube('v3')
