@@ -5,12 +5,24 @@ updates:
     schedule:
       interval: daily
     groups:
-      production-dependencies:
+      prod-dependencies:
         dependency-type: 'production'
+        update-types:
+          - 'minor'
+          - 'patch'
         exclude-patterns:
-          - 'discord*'
-      development-dependencies:
+          - '*discord*'
+          - '*prisma*'
+      dev-dependencies:
         dependency-type: 'development'
-      discord:
+        update-types:
+          - 'minor'
+          - 'patch'
+        exclude-patterns:
+          - '*prisma*'
+      discord-dependencies:
         patterns:
-          - 'discord*'
+          - '*discord*'
+      prisma-dependencies:
+        patterns:
+          - '*prisma*'
