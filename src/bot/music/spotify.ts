@@ -1,9 +1,4 @@
-import {
-  Page,
-  PlaylistedTrack,
-  SpotifyApi,
-  Track
-} from '@spotify/web-api-ts-sdk'
+import { SpotifyApi } from '@spotify/web-api-ts-sdk'
 
 /**
  * Represents a Spotify client.
@@ -37,9 +32,8 @@ export default class SpotifyClient {
    * @returns A list of the songs in the playlist
    */
   getPlaylistItems = async (playlistId: string) => {
-    let playlist: Page<PlaylistedTrack<Track>>
     try {
-      playlist = await this._spotifyClient.playlists.getPlaylistItems(
+      var playlist = await this._spotifyClient.playlists.getPlaylistItems(
         playlistId,
         'US',
         'items(track(name,artists(name)))',
