@@ -522,6 +522,11 @@ export default class GuildPlayer {
     }
 
     const songUrls = await this._getSearchList(song)
+    if (songUrls.length === 0 && song.includes('spotify.com')) {
+      return await interaction.editReply({
+        content: 'No tracks found. Is the playlist private?'
+      })
+    }
 
     await interaction.editReply({
       content:

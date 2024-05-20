@@ -32,15 +32,19 @@ export default class SpotifyClient {
    * @returns A list of the songs in the playlist
    */
   getPlaylistItems = async (playlistId: string) => {
-    const playlist = await this._spotifyClient.playlists.getPlaylistItems(
-      playlistId,
-      'US',
-      'items(track(name,artists(name)))',
-      50
-    )
+    try {
+      const playlist = await this._spotifyClient.playlists.getPlaylistItems(
+        playlistId,
+        'US',
+        'items(track(name,artists(name)))',
+        50
+      )
 
-    return playlist.items.map(
-      (item) => `${item.track.artists[0].name} - ${item.track.name}`
-    )
+      return playlist.items.map(
+        (item) => `${item.track.artists[0].name} - ${item.track.name}`
+      )
+    } catch (err) {
+      return []
+    }
   }
 }
