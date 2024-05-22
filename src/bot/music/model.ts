@@ -11,6 +11,7 @@ export type Song = {
   title: string
   id: string
   duration: number
+  durationString: string
   url: string
   thumbnail: string
   user: string

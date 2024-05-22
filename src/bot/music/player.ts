@@ -142,6 +142,7 @@ export default class GuildPlayer {
         title: songInfo.title,
         id: songInfo.id,
         duration: songInfo.duration,
+        durationString: songInfo.duration_string,
         url: songInfo.webpage_url,
         thumbnail: songInfo.thumbnail,
         user: user
