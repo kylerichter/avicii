@@ -35,12 +35,11 @@ export default class YouTubeClient {
    * @param song - The song query
    * @returns List of search results from YouTube
    */
-  searchYoutube = async (song: string) => {
-    const query = song + ' explicit lyrics'
+  searchYoutube = async (query: string) => {
     const response = await this._youtubeClient.search.list({
       part: ['snippet'],
       maxResults: 3,
-      q: query,
+      q: query + ' explicit lyrics',
       safeSearch: 'none',
       topicId: '/m/04rlf',
       type: ['video'],
@@ -59,10 +58,10 @@ export default class YouTubeClient {
    * @returns A list of YouTube links to the videos in the playlist
    */
   searchYoutubePlaylist = async (playlistId: string) => {
-    const songUrls = []
+    const videoIds = []
     const response = await this._youtubeClient.playlistItems.list({
       part: ['contentDetails'],
-      maxResults: 25,
+      maxResults: 5,
       playlistId: playlistId,
       auth: this._youtubeToken
     })
@@ -70,9 +69,11 @@ export default class YouTubeClient {
     const items = response.data.items ?? []
     for (const item of items) {
       const videoId = item.contentDetails?.videoId
-      songUrls.push(`https://www.youtube.com/watch?v=${videoId}`)
+      if (!videoId) continue
+
+      videoIds.push(videoId)
     }
 
-    return songUrls
+    return videoIds
   }
 }
