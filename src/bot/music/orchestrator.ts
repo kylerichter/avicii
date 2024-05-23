@@ -3,6 +3,7 @@ import {
   ChatInputCommandInteraction,
   Client
 } from 'discord.js'
+import PlayerCache from './cache'
 import GuildPlayer from './player'
 import SpotifyClient from './spotify'
 import YouTubeClient from './youTube'
@@ -12,6 +13,7 @@ import YouTubeClient from './youTube'
  */
 export default class GuildPlayerOrchestrator {
   private readonly _client: Client
+  private _cache: PlayerCache
   private _guildPlayers: GuildPlayer[] = []
   private _spotifyClient: SpotifyClient
   private _youTubeClient: YouTubeClient
@@ -23,6 +25,7 @@ export default class GuildPlayerOrchestrator {
    */
   constructor(client: Client) {
     this._client = client
+    this._cache = new PlayerCache()
     this._spotifyClient = new SpotifyClient()
     this._youTubeClient = new YouTubeClient()
   }
@@ -36,11 +39,14 @@ export default class GuildPlayerOrchestrator {
    * This method should be called after constructing GuildPlayerOrchestrator to perform setup.
    */
   init = async () => {
+    await this._cache.init()
+
     const guilds = this._client.guilds.cache
     for (const guild of guilds) {
       const guildPlayer = new GuildPlayer(
         this._client,
         guild[1],
+        this._cache,
         this._spotifyClient,
         this._youTubeClient
       )

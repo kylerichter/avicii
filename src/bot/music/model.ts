@@ -14,12 +14,15 @@ export type Cache = {
 }
 
 export type CacheEntry = {
-  url: string
-  filePath: string
-  lastAccessed: number
+  song: Song
+  // lastAccessed: number
 }
 
 export type CacheKind = 'queries' | 'spotify' | 'youtube'
+
+export type Queue = Song & {
+  user: string
+}
 
 export type Song = {
   title: string
@@ -28,7 +31,6 @@ export type Song = {
   durationString: string
   url: string
   thumbnail: string
-  user: string
 }
 
 export type SongChoice = {
