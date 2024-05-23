@@ -124,40 +124,38 @@ export default class GuildPlayer {
   }
 
   /**
-   * Add song(s) to queue and start playing if no song is currently playing or paused.
+   * Add song to queue and start playing if no song is currently playing or paused.
    *
-   * @param songs - The list of song(s) to add
+   * @param song - The song to add
    * @param user - The user that requested the song
    * @returns None
    */
-  private _addSongsToQueue = async (songs: Song[], user: string) => {
-    for (const song of songs) {
-      this._queue.push({
-        title: song.title,
-        id: song.id,
-        duration: song.duration,
-        durationString: song.durationString,
-        url: song.url,
-        thumbnail: song.thumbnail,
-        user: user
-      })
+  private _addSongToQueue = async (song: Song, user: string) => {
+    this._queue.push({
+      title: song.title,
+      id: song.id,
+      duration: song.duration,
+      durationString: song.durationString,
+      url: song.url,
+      thumbnail: song.thumbnail,
+      user: user
+    })
 
-      if (!this._playing && !this._paused) {
-        await this._playSong()
-      }
-
-      await this._queueEmbed?.edit({
-        embeds: [await embed.queueEmbed(this._queue, this._queueIndex)]
-      })
+    if (!this._playing && !this._paused) {
+      await this._playSong()
     }
+
+    await this._queueEmbed?.edit({
+      embeds: [await embed.queueEmbed(this._queue, this._queueIndex)]
+    })
   }
 
   /**
-   * Get a list of songs based on the Spotify link.
+   * Get a list of songs based on the Spotify link and add to queue.
    * Check the queue if the playlist ID exists.
    *
    * @param interaction - The interaction
-   * @returns A list of songs
+   * @returns The number of songs added
    */
   private _addSpotify = async (interaction: ChatInputCommandInteraction) => {
     const song = interaction.options.getString('song')!
@@ -165,7 +163,13 @@ export default class GuildPlayer {
     let cacheEntry = await this._cache.get('spotify', playlistId)
 
     if (cacheEntry && Array.isArray(cacheEntry)) {
-      return cacheEntry.map((e) => e.song)
+      let songsAdded = 0
+
+      for (const entry of cacheEntry) {
+        await this._addSongToQueue(entry.song, interaction.user.username)
+        songsAdded++
+      }
+      return songsAdded
     }
 
     const songs: CacheEntry[] = []
@@ -174,6 +178,7 @@ export default class GuildPlayer {
     for (const query of playlistItems) {
       cacheEntry = await this._cache.get('queries', query)
       if (cacheEntry && !Array.isArray(cacheEntry)) {
+        await this._addSongToQueue(cacheEntry.song, interaction.user.username)
         songs.push(cacheEntry)
         continue
       }
@@ -182,6 +187,7 @@ export default class GuildPlayer {
       const videoId = songChoices[0]?.id.videoId
       cacheEntry = await this._cache.get('queries', videoId)
       if (cacheEntry && !Array.isArray(cacheEntry)) {
+        await this._addSongToQueue(cacheEntry.song, interaction.user.username)
         songs.push(cacheEntry)
         continue
       }
@@ -206,20 +212,21 @@ export default class GuildPlayer {
         }
       }
 
+      await this._addSongToQueue(songData.song, interaction.user.username)
       await this._cache.add('queries', videoId, songData)
       songs.push(songData)
     }
 
     await this._cache.add('spotify', playlistId, songs)
-    return songs.map((e) => e.song)
+    return songs.length
   }
 
   /**
-   * Get a list of songs based on the YouTube link.
+   * Get a list of songs based on the YouTube link and add to queue.
    * Check the queue if the video or playlist ID exists.
    *
    * @param interaction - The interaction
-   * @returns A list of songs
+   * @returns The number of songs added
    */
   private _addYoutube = async (interaction: ChatInputCommandInteraction) => {
     const song = interaction.options.getString('song')!
@@ -231,14 +238,15 @@ export default class GuildPlayer {
       const videoId = song.split('?v=')[1]
       const cacheEntry = await this._cache.get('queries', videoId)
       if (cacheEntry && !Array.isArray(cacheEntry)) {
-        return [cacheEntry.song]
+        await this._addSongToQueue(cacheEntry.song, interaction.user.username)
+        return 1
       }
 
       try {
         var songInfo = await this._youTubeClient.getYoutubeInfo(song)
       } catch (err) {
         console.error(`Error getting YouTube info for ${song}`, err)
-        return []
+        return 0
       }
 
       await this._downloadSong(songInfo)
@@ -253,13 +261,20 @@ export default class GuildPlayer {
         }
       }
 
+      await this._addSongToQueue(songData.song, interaction.user.username)
       await this._cache.add('queries', videoId, songData)
-      return [songData.song]
+      return 1
     }
 
     let cacheEntry = await this._cache.get('youtube', playlistId)
     if (cacheEntry && Array.isArray(cacheEntry)) {
-      return cacheEntry.map((e) => e.song)
+      let songsAdded = 0
+
+      for (const entry of cacheEntry) {
+        await this._addSongToQueue(entry.song, interaction.user.username)
+        songsAdded++
+      }
+      return songsAdded
     }
 
     const songs: CacheEntry[] = []
@@ -269,6 +284,7 @@ export default class GuildPlayer {
     for (const item of playlistItems) {
       cacheEntry = await this._cache.get('queries', item)
       if (cacheEntry && !Array.isArray(cacheEntry)) {
+        await this._addSongToQueue(cacheEntry.song, interaction.user.username)
         songs.push(cacheEntry)
         continue
       }
@@ -293,12 +309,13 @@ export default class GuildPlayer {
         }
       }
 
+      await this._addSongToQueue(songData.song, interaction.user.username)
       await this._cache.add('queries', item, songData)
       songs.push(songData)
     }
 
     await this._cache.add('youtube', playlistId, songs)
-    return songs.map((e) => e.song)
+    return songs.length
   }
 
   /**
@@ -558,7 +575,7 @@ export default class GuildPlayer {
       thumbnail: songInfo.thumbnail
     }
 
-    await this._addSongsToQueue([songData], interaction.user.username)
+    await this._addSongToQueue(songData, interaction.user.username)
   }
 
   /**
@@ -629,32 +646,25 @@ export default class GuildPlayer {
       return await this._getSongChoices(interaction, channel, song)
     }
 
-    let songs: Song[] = []
+    if (!this._player) await this._createConnection(channel)
+
+    let songsAdded = 0
     if (song.includes('spotify.com')) {
-      songs = await this._addSpotify(interaction)
+      songsAdded = await this._addSpotify(interaction)
     }
 
     if (song.includes('youtube.com')) {
-      songs = await this._addYoutube(interaction)
+      songsAdded = await this._addYoutube(interaction)
     }
 
-    if (songs.length === 0 && song.includes('spotify.com')) {
+    if (songsAdded === 0 && song.includes('spotify.com')) {
       return await interaction.editReply({
         content: 'No tracks found. Is the playlist private?'
       })
     }
 
-    await interaction.editReply({
-      content:
-        songs.length > 1 ? 'Adding songs to queue!' : 'Adding song to queue!'
-    })
-
-    if (!this._player) await this._createConnection(channel)
-
-    await this._addSongsToQueue(songs, interaction.user.username)
-
     return interaction.editReply({
-      content: `Added ${songs.length} ${songs.length > 1 ? 'songs' : 'song'} to queue!`
+      content: `Added ${songsAdded} ${songsAdded > 1 ? 'songs' : 'song'} to queue!`
     })
   }
 
