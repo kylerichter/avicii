@@ -48,28 +48,28 @@ export default class PlayerCache {
    *
    * @param kind - The type of cache
    */
-  private _removeLRU = async (kind: CacheKind) => {
-    const cacheEntries = this._cache[kind]
-    let oldestKey: string | undefined
-    let oldestTimestamp = Infinity
+  //   private _removeLRU = async (kind: CacheKind) => {
+  //     const cacheEntries = this._cache[kind]
+  //     let oldestKey: string | undefined
+  //     let oldestTimestamp = Infinity
 
-    for (const key in cacheEntries) {
-      const entry = cacheEntries[key]
-      const lastAccessed = Array.isArray(entry)
-        ? Math.min(...entry.map((e) => e.lastAccessed))
-        : entry.lastAccessed
+  //     for (const key in cacheEntries) {
+  //       const entry = cacheEntries[key]
+  //       const lastAccessed = Array.isArray(entry)
+  //         ? Math.min(...entry.map((e) => e.lastAccessed))
+  //         : entry.lastAccessed
 
-      if (lastAccessed < oldestTimestamp) {
-        oldestKey = key
-        oldestTimestamp = lastAccessed
-      }
-    }
+  //       if (lastAccessed < oldestTimestamp) {
+  //         oldestKey = key
+  //         oldestTimestamp = lastAccessed
+  //       }
+  //     }
 
-    if (oldestKey) {
-      delete this._cache[kind][oldestKey]
-      await this._saveToFile()
-    }
-  }
+  //     if (oldestKey) {
+  //       delete this._cache[kind][oldestKey]
+  //       await this._saveToFile()
+  //     }
+  //   }
 
   /**
    * Saves the current internal cache to the external cache file.
@@ -91,11 +91,11 @@ export default class PlayerCache {
     key: string,
     value: CacheEntry | CacheEntry[]
   ) => {
-    if (Array.isArray(value)) {
-      value.forEach((e) => (e.lastAccessed = Date.now()))
-    } else {
-      value.lastAccessed = Date.now()
-    }
+    // if (Array.isArray(value)) {
+    //   value.forEach((e) => (e.lastAccessed = Date.now()))
+    // } else {
+    //   value.lastAccessed = Date.now()
+    // }
 
     this._cache[kind][key] = value
     await this._saveToFile()
@@ -111,11 +111,11 @@ export default class PlayerCache {
   get = async (kind: CacheKind, key: string) => {
     const entry = this._cache[kind][key]
     if (entry) {
-      if (Array.isArray(entry)) {
-        entry.forEach((e) => (e.lastAccessed = Date.now()))
-      } else {
-        entry.lastAccessed = Date.now()
-      }
+      //   if (Array.isArray(entry)) {
+      //     entry.forEach((e) => (e.lastAccessed = Date.now()))
+      //   } else {
+      //     entry.lastAccessed = Date.now()
+      //   }
 
       await this._saveToFile()
     }
