@@ -5,7 +5,7 @@ import {
   EmbedBuilder,
   TextChannel
 } from 'discord.js'
-import { Song, SongChoicesEmbed, YouTubeSearchResult } from '../model'
+import { Queue, SongChoicesEmbed, YouTubeSearchResult } from '../model'
 import row from './row'
 
 /**
@@ -69,7 +69,7 @@ const nothingPlaying = async () => {
  * @param song - The song playing
  * @returns A now playing embed
  */
-const nowPlaying = async (song: Song) => {
+const nowPlaying = async (song: Queue) => {
   return new EmbedBuilder()
     .setColor('#d0342c')
     .setAuthor({ name: 'Now Playing' })
@@ -87,7 +87,7 @@ const nowPlaying = async (song: Song) => {
  * @param index - The current queue index
  * @returns A queue embed
  */
-const queueEmbed = async (queue: Song[], index: number) => {
+const queueEmbed = async (queue: Queue[], index: number) => {
   const embed = new EmbedBuilder().setColor('#d0342c').setTitle('Queue')
 
   let queueString = ''

@@ -1,5 +1,8 @@
 .idea
 
+# PersistentVolumeClaim
+cache
+
 # Kubernetes secrets
 kubernetes/secrets/*.yml
 !kubernetes/secrets/*.enc.yml

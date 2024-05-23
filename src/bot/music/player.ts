@@ -23,13 +23,14 @@ import {
 import fs from 'node:fs'
 import path from 'path'
 import { Payload } from 'youtube-dl-exec'
+import PlayerCache from './cache'
 import embed from './embed/embed'
 import row from './embed/row'
-import { Song, SongChoice } from './model'
+import { CacheEntry, Queue, Song, SongChoice } from './model'
 import SpotifyClient from './spotify'
 import YouTubeClient from './youTube'
 
-const baseFilePath = '../../files'
+const baseFilePath = '../../../cache'
 
 /**
  * Represents a music player bound to a single guild.
@@ -39,6 +40,7 @@ export default class GuildPlayer {
   private readonly _client: Client
   private _shutdownTimestamp = 0
   private _takeRequests = true
+  private _cache: PlayerCache
   private _spotifyClient: SpotifyClient
   private _youTubeClient: YouTubeClient
 
@@ -50,7 +52,7 @@ export default class GuildPlayer {
   private _playing = false
   private _playTimestamp = 0
 
-  private _queue: Song[] = []
+  private _queue: Queue[] = []
   private _queueIndex = 0
   private _musicChoiceQueue: SongChoice[] = []
 
@@ -69,11 +71,13 @@ export default class GuildPlayer {
   constructor(
     client: Client,
     guild: Guild,
+    cache: PlayerCache,
     spotifyClient: SpotifyClient,
     youTubeClient: YouTubeClient
   ) {
     this._client = client
     this.guild = guild
+    this._cache = cache
     this._spotifyClient = spotifyClient
     this._youTubeClient = youTubeClient
   }
@@ -122,32 +126,21 @@ export default class GuildPlayer {
   /**
    * Add song(s) to queue and start playing if no song is currently playing or paused.
    *
-   * @param urls - The list of song(s) to add
+   * @param songs - The list of song(s) to add
    * @param user - The user that requested the song
-   * @returns Number of songs added to queue
+   * @returns None
    */
-  private _addSongsToQueue = async (urls: string[], user: string) => {
-    let songsAdded = 0
-    for (const url of urls) {
-      try {
-        var songInfo = await this._youTubeClient.getYoutubeInfo(url)
-      } catch (err) {
-        console.log(`Error getting YouTube info for ${url}`, err)
-        continue
-      }
-
-      await this._downloadSong(songInfo)
-
+  private _addSongsToQueue = async (songs: Song[], user: string) => {
+    for (const song of songs) {
       this._queue.push({
-        title: songInfo.title,
-        id: songInfo.id,
-        duration: songInfo.duration,
-        durationString: songInfo.duration_string,
-        url: songInfo.webpage_url,
-        thumbnail: songInfo.thumbnail,
+        title: song.title,
+        id: song.id,
+        duration: song.duration,
+        durationString: song.durationString,
+        url: song.url,
+        thumbnail: song.thumbnail,
         user: user
       })
-      songsAdded++
 
       if (!this._playing && !this._paused) {
         await this._playSong()
@@ -157,8 +150,155 @@ export default class GuildPlayer {
         embeds: [await embed.queueEmbed(this._queue, this._queueIndex)]
       })
     }
+  }
 
-    return songsAdded
+  /**
+   * Get a list of songs based on the Spotify link.
+   * Check the queue if the playlist ID exists.
+   *
+   * @param interaction - The interaction
+   * @returns A list of songs
+   */
+  private _addSpotify = async (interaction: ChatInputCommandInteraction) => {
+    const song = interaction.options.getString('song')!
+    const playlistId = song.split('playlist/')[1].split('?si=')[0]
+    let cacheEntry = await this._cache.get('spotify', playlistId)
+
+    if (cacheEntry && Array.isArray(cacheEntry)) {
+      return cacheEntry.map((e) => e.song)
+    }
+
+    const songs: CacheEntry[] = []
+    const playlistItems = await this._spotifyClient.getPlaylistItems(playlistId)
+
+    for (const query of playlistItems) {
+      cacheEntry = await this._cache.get('queries', query)
+      if (cacheEntry && !Array.isArray(cacheEntry)) {
+        songs.push(cacheEntry)
+        continue
+      }
+
+      const songChoices = await this._youTubeClient.searchYoutube(query)
+      const videoId = songChoices[0]?.id.videoId
+      cacheEntry = await this._cache.get('queries', videoId)
+      if (cacheEntry && !Array.isArray(cacheEntry)) {
+        songs.push(cacheEntry)
+        continue
+      }
+
+      const videoUrl = `https://www.youtube.com/watch?v=${videoId}`
+      try {
+        var songInfo = await this._youTubeClient.getYoutubeInfo(videoUrl)
+      } catch (err) {
+        console.error(`Error getting YouTube info for ${videoUrl}`, err)
+        continue
+      }
+
+      await this._downloadSong(songInfo)
+      const songData: CacheEntry = {
+        song: {
+          title: songInfo.title,
+          id: songInfo.id,
+          duration: songInfo.duration,
+          durationString: songInfo.duration_string,
+          url: songInfo.webpage_url,
+          thumbnail: songInfo.thumbnail
+        }
+      }
+
+      await this._cache.add('queries', videoId, songData)
+      songs.push(songData)
+    }
+
+    await this._cache.add('spotify', playlistId, songs)
+    return songs.map((e) => e.song)
+  }
+
+  /**
+   * Get a list of songs based on the YouTube link.
+   * Check the queue if the video or playlist ID exists.
+   *
+   * @param interaction - The interaction
+   * @returns A list of songs
+   */
+  private _addYoutube = async (interaction: ChatInputCommandInteraction) => {
+    const song = interaction.options.getString('song')!
+    const playlistId = song.includes('&list=')
+      ? song.split('&list=')[1].split('&index=')[0]
+      : undefined
+
+    if (!playlistId) {
+      const videoId = song.split('?v=')[1]
+      const cacheEntry = await this._cache.get('queries', videoId)
+      if (cacheEntry && !Array.isArray(cacheEntry)) {
+        return [cacheEntry.song]
+      }
+
+      try {
+        var songInfo = await this._youTubeClient.getYoutubeInfo(song)
+      } catch (err) {
+        console.error(`Error getting YouTube info for ${song}`, err)
+        return []
+      }
+
+      await this._downloadSong(songInfo)
+      const songData: CacheEntry = {
+        song: {
+          title: songInfo.title,
+          id: songInfo.id,
+          duration: songInfo.duration,
+          durationString: songInfo.duration_string,
+          url: songInfo.webpage_url,
+          thumbnail: songInfo.thumbnail
+        }
+      }
+
+      await this._cache.add('queries', videoId, songData)
+      return [songData.song]
+    }
+
+    let cacheEntry = await this._cache.get('youtube', playlistId)
+    if (cacheEntry && Array.isArray(cacheEntry)) {
+      return cacheEntry.map((e) => e.song)
+    }
+
+    const songs: CacheEntry[] = []
+    const playlistItems =
+      await this._youTubeClient.searchYoutubePlaylist(playlistId)
+
+    for (const item of playlistItems) {
+      cacheEntry = await this._cache.get('queries', item)
+      if (cacheEntry && !Array.isArray(cacheEntry)) {
+        songs.push(cacheEntry)
+        continue
+      }
+
+      const videoUrl = `https://www.youtube.com/watch?v=${item}`
+      try {
+        var songInfo = await this._youTubeClient.getYoutubeInfo(videoUrl)
+      } catch (err) {
+        console.error(`Error getting YouTube info for ${videoUrl}`, err)
+        continue
+      }
+
+      await this._downloadSong(songInfo)
+      const songData: CacheEntry = {
+        song: {
+          title: songInfo.title,
+          id: songInfo.id,
+          duration: songInfo.duration,
+          durationString: songInfo.duration_string,
+          url: songInfo.webpage_url,
+          thumbnail: songInfo.thumbnail
+        }
+      }
+
+      await this._cache.add('queries', item, songData)
+      songs.push(songData)
+    }
+
+    await this._cache.add('youtube', playlistId, songs)
+    return songs.map((e) => e.song)
   }
 
   /**
@@ -254,21 +394,6 @@ export default class GuildPlayer {
   }
 
   /**
-   * Get the list of songs to search on YouTube.
-   * If given a playlist link, get all the songs in the playlist.
-   *
-   * @param url - The song or playlist to search
-   * @returns List of YouTube song urls
-   */
-  private _getSearchList = async (url: string) => {
-    if (url.includes('spotify.com')) {
-      return await this._getSpotifySearchList(url)
-    } else {
-      return await this._getYoutubeSearchList(url)
-    }
-  }
-
-  /**
    * Send an embed of the songs returned by YouTube query.
    *
    * @param interaction - The interaction to reply to
@@ -291,45 +416,6 @@ export default class GuildPlayer {
       message: message,
       songs: songChoices
     })
-  }
-
-  /**
-   * Get the list of songs to search on YouTube from a Spotify playlist.
-   *
-   * @param url - The playlist to search
-   * @returns List of YouTube song urls
-   */
-  private _getSpotifySearchList = async (url: string) => {
-    const playlistResults = []
-    const playlistId = url.split('playlist/')[1].split('?si=')[0]
-    const playlist = await this._spotifyClient.getPlaylistItems(playlistId)
-
-    for (const song of playlist) {
-      const songChoices = await this._youTubeClient.searchYoutube(song)
-      const songUrl = `https://www.youtube.com/watch?v=${songChoices[0]?.id.videoId}`
-      playlistResults.push(songUrl)
-    }
-
-    return playlistResults
-  }
-
-  /**
-   * Get the list of songs to search on YouTube.
-   * If given a playlist link, get all the songs in the playlist.
-   *
-   * @param url - The song or playlist to search
-   * @returns List of YouTube song urls
-   */
-  private _getYoutubeSearchList = async (url: string) => {
-    const playlistId = url.includes('&list=')
-      ? url.split('&list=')[1].split('&index=')[0]
-      : undefined
-
-    const playlistResults = playlistId
-      ? await this._youTubeClient.searchYoutubePlaylist(playlistId)
-      : undefined
-
-    return playlistResults ?? [url]
   }
 
   /**
@@ -451,7 +537,28 @@ export default class GuildPlayer {
     })
 
     const songUrl = `https://www.youtube.com/watch?v=${song?.id.videoId}`
-    await this._addSongsToQueue([songUrl], interaction.user.username)
+    try {
+      var songInfo = await this._youTubeClient.getYoutubeInfo(songUrl)
+    } catch (err) {
+      console.log(`Error getting YouTube info for ${songUrl}`, err)
+      return await interaction.update({
+        content: 'Something went wrong!',
+        embeds: [],
+        components: []
+      })
+    }
+
+    await this._downloadSong(songInfo)
+    const songData = {
+      title: songInfo.title,
+      id: songInfo.id,
+      duration: songInfo.duration,
+      durationString: songInfo.duration_string,
+      url: songInfo.webpage_url,
+      thumbnail: songInfo.thumbnail
+    }
+
+    await this._addSongsToQueue([songData], interaction.user.username)
   }
 
   /**
@@ -522,8 +629,16 @@ export default class GuildPlayer {
       return await this._getSongChoices(interaction, channel, song)
     }
 
-    const songUrls = await this._getSearchList(song)
-    if (songUrls.length === 0 && song.includes('spotify.com')) {
+    let songs: Song[] = []
+    if (song.includes('spotify.com')) {
+      songs = await this._addSpotify(interaction)
+    }
+
+    if (song.includes('youtube.com')) {
+      songs = await this._addYoutube(interaction)
+    }
+
+    if (songs.length === 0 && song.includes('spotify.com')) {
       return await interaction.editReply({
         content: 'No tracks found. Is the playlist private?'
       })
@@ -531,18 +646,15 @@ export default class GuildPlayer {
 
     await interaction.editReply({
       content:
-        songUrls.length > 1 ? 'Adding songs to queue!' : 'Adding song to queue!'
+        songs.length > 1 ? 'Adding songs to queue!' : 'Adding song to queue!'
     })
 
     if (!this._player) await this._createConnection(channel)
 
-    const songsAdded = await this._addSongsToQueue(
-      songUrls,
-      interaction.user.username
-    )
+    await this._addSongsToQueue(songs, interaction.user.username)
 
     return interaction.editReply({
-      content: `Added ${songsAdded} ${songsAdded > 1 ? 'songs' : 'song'} to queue!`
+      content: `Added ${songs.length} ${songs.length > 1 ? 'songs' : 'song'} to queue!`
     })
   }
 

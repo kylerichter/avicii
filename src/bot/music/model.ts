@@ -7,6 +7,23 @@ import {
   VoiceChannel
 } from 'discord.js'
 
+export type Cache = {
+  queries: Record<string, CacheEntry>
+  spotify: Record<string, CacheEntry[]>
+  youtube: Record<string, CacheEntry[]>
+}
+
+export type CacheEntry = {
+  song: Song
+  // lastAccessed: number
+}
+
+export type CacheKind = 'queries' | 'spotify' | 'youtube'
+
+export type Queue = Song & {
+  user: string
+}
+
 export type Song = {
   title: string
   id: string
@@ -14,7 +31,6 @@ export type Song = {
   durationString: string
   url: string
   thumbnail: string
-  user: string
 }
 
 export type SongChoice = {

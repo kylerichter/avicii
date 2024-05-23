@@ -47,18 +47,22 @@ spec:
                 secretKeyRef:
                   name: avicii-secrets
                   key: youtube_token
-            - name: SAMPLE_CONFIGMAP
-              valueFrom:
-                configMapKeyRef:
-                  name: avicii-config
-                  key: key
           volumeMounts:
-            - name: avicii-config-volume
-              mountPath: /app/volume_mount/sample-config
+            - name: avicii-pvc
+              mountPath: /app/cache
       volumes:
-        - name: avicii-config-volume
-          configMap:
-            name: avicii-config
-            items:
-              - key: sample.json
-                path: sample-config.json
+        - name: avicii-pvc
+          persistentVolumeClaim:
+            claimName: avicii-pvc
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: avicii-pvc
+  namespace: discord-bots
+spec:
+  accessModes:
+    - ReadWriteOncePod
+  resources:
+    requests:
+      storage: 5Gi
