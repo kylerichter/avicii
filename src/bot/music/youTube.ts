@@ -55,13 +55,13 @@ export default class YouTubeClient {
    * Search - list: {@link https://developers.google.com/youtube/v3/docs/playlistItems/list}
    *
    * @param playlistId - The playlist ID
-   * @returns A list of YouTube links to the videos in the playlist
+   * @returns A list of YouTube video IDs in the playlist
    */
   searchYoutubePlaylist = async (playlistId: string) => {
     const videoIds = []
     const response = await this._youtubeClient.playlistItems.list({
       part: ['contentDetails'],
-      maxResults: 5,
+      maxResults: 50,
       playlistId: playlistId,
       auth: this._youtubeToken
     })
