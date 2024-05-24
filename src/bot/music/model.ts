@@ -8,9 +8,11 @@ import {
 } from 'discord.js'
 
 export type Cache = {
-  queries: Record<string, CacheEntry>
-  spotify: Record<string, CacheEntry[]>
-  youtube: Record<string, CacheEntry[]>
+  spotifyPlaylists: Record<string, CacheEntry[]>
+  spotifyTracks: Record<string, CacheEntry>
+  youtubePlaylists: Record<string, CacheEntry[]>
+  youtubeQueries: Record<string, CacheEntry>
+  youtubeTracks: Record<string, CacheEntry>
 }
 
 export type CacheEntry = {
@@ -18,7 +20,12 @@ export type CacheEntry = {
   // lastAccessed: number
 }
 
-export type CacheKind = 'queries' | 'spotify' | 'youtube'
+export type CacheKind =
+  | 'spotifyPlaylists'
+  | 'spotifyTracks'
+  | 'youtubePlaylists'
+  | 'youtubeQueries'
+  | 'youtubeTracks'
 
 export type Queue = Song & {
   user: string
