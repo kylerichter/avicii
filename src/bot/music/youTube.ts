@@ -36,17 +36,22 @@ export default class YouTubeClient {
    * @returns List of search results from YouTube
    */
   searchYoutube = async (query: string) => {
-    const response = await this._youtubeClient.search.list({
-      part: ['snippet'],
-      maxResults: 3,
-      q: query + ' explicit lyrics',
-      safeSearch: 'none',
-      topicId: '/m/04rlf',
-      type: ['video'],
-      auth: this._youtubeToken
-    })
+    try {
+      const response = await this._youtubeClient.search.list({
+        part: ['snippet'],
+        maxResults: 3,
+        q: query + ' explicit lyrics',
+        safeSearch: 'none',
+        topicId: '/m/04rlf',
+        type: ['video'],
+        auth: this._youtubeToken
+      })
 
-    return response.data.items as YouTubeSearchResult[]
+      return response.data.items as YouTubeSearchResult[]
+    } catch (err) {
+      console.error(`searchYoutube error for query: ${query}`, err)
+      return []
+    }
   }
 
   /**
@@ -58,22 +63,30 @@ export default class YouTubeClient {
    * @returns A list of YouTube video IDs in the playlist
    */
   searchYoutubePlaylist = async (playlistId: string) => {
-    const videoIds = []
-    const response = await this._youtubeClient.playlistItems.list({
-      part: ['contentDetails'],
-      maxResults: 50,
-      playlistId: playlistId,
-      auth: this._youtubeToken
-    })
+    try {
+      const videoIds = []
+      const response = await this._youtubeClient.playlistItems.list({
+        part: ['contentDetails'],
+        maxResults: 50,
+        playlistId: playlistId,
+        auth: this._youtubeToken
+      })
 
-    const items = response.data.items ?? []
-    for (const item of items) {
-      const videoId = item.contentDetails?.videoId
-      if (!videoId) continue
+      const items = response.data.items ?? []
+      for (const item of items) {
+        const videoId = item.contentDetails?.videoId
+        if (!videoId) continue
 
-      videoIds.push(videoId)
+        videoIds.push(videoId)
+      }
+
+      return videoIds
+    } catch (err) {
+      console.error(
+        `searchYoutubePlaylist error for playlistId: ${playlistId}`,
+        err
+      )
+      return []
     }
-
-    return videoIds
   }
 }
