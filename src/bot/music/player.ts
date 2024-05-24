@@ -213,22 +213,11 @@ export default class GuildPlayer {
       return 1
     }
 
-    let cacheEntry = await this._cache.get('spotifyPlaylists', playlistId)
-    if (cacheEntry && Array.isArray(cacheEntry)) {
-      let songsAdded = 0
-
-      for (const entry of cacheEntry) {
-        await this._addSongToQueue(entry.song, interaction.user.username)
-        songsAdded++
-      }
-      return songsAdded
-    }
-
     const songs: CacheEntry[] = []
     const playlistItems = await this._spotifyClient.getPlaylistItems(playlistId)
 
     for (const query of playlistItems) {
-      cacheEntry = await this._cache.get('youtubeQueries', query.title)
+      let cacheEntry = await this._cache.get('youtubeQueries', query.title)
       if (cacheEntry && !Array.isArray(cacheEntry)) {
         await this._addSongToQueue(cacheEntry.song, interaction.user.username)
         songs.push(cacheEntry)
@@ -269,10 +258,6 @@ export default class GuildPlayer {
       await this._cache.add('youtubeQueries', query.title, songData)
       await this._cache.add('youtubeTracks', videoId, songData)
       songs.push(songData)
-    }
-
-    if (songs.length >= 1) {
-      await this._cache.add('spotifyPlaylists', playlistId, songs)
     }
 
     return songs.length
@@ -323,23 +308,12 @@ export default class GuildPlayer {
       return 1
     }
 
-    let cacheEntry = await this._cache.get('youtubePlaylists', playlistId)
-    if (cacheEntry && Array.isArray(cacheEntry)) {
-      let songsAdded = 0
-
-      for (const entry of cacheEntry) {
-        await this._addSongToQueue(entry.song, interaction.user.username)
-        songsAdded++
-      }
-      return songsAdded
-    }
-
     const songs: CacheEntry[] = []
     const playlistItems =
       await this._youTubeClient.searchYoutubePlaylist(playlistId)
 
     for (const item of playlistItems) {
-      cacheEntry = await this._cache.get('youtubeTracks', item)
+      let cacheEntry = await this._cache.get('youtubeTracks', item)
       if (cacheEntry && !Array.isArray(cacheEntry)) {
         await this._addSongToQueue(cacheEntry.song, interaction.user.username)
         songs.push(cacheEntry)
@@ -371,9 +345,6 @@ export default class GuildPlayer {
       songs.push(songData)
     }
 
-    if (songs.length >= 1) {
-      await this._cache.add('youtubePlaylists', playlistId, songs)
-    }
     return songs.length
   }
 

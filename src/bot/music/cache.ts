@@ -29,9 +29,7 @@ export default class PlayerCache {
         filePath,
         JSON.stringify(
           {
-            spotifyPlaylists: {},
             spotifyTracks: {},
-            youtubePlaylists: {},
             youtubeQueries: {},
             youtubeTracks: {}
           },
@@ -40,9 +38,7 @@ export default class PlayerCache {
         )
       )
       this._cache = {
-        spotifyPlaylists: {},
         spotifyTracks: {},
-        youtubePlaylists: {},
         youtubeQueries: {},
         youtubeTracks: {}
       }
@@ -94,11 +90,7 @@ export default class PlayerCache {
    * @param key - The key of the entry
    * @param value - The value of the key
    */
-  add = async (
-    kind: CacheKind,
-    key: string,
-    value: CacheEntry | CacheEntry[]
-  ) => {
+  add = async (kind: CacheKind, key: string, value: CacheEntry) => {
     // if (Array.isArray(value)) {
     //   value.forEach((e) => (e.lastAccessed = Date.now()))
     // } else {
