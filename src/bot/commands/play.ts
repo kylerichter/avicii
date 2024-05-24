@@ -13,6 +13,12 @@ module.exports = {
         .setName('song')
         .setDescription('Search query, YouTube URL, or Spotify URL')
         .setRequired(true)
+    )
+    .addBooleanOption((option) =>
+      option
+        .setName('next')
+        .setDescription('Add track to the front of the queue')
+        .setRequired(false)
     ),
   async execute(interaction: ChatInputCommandInteraction) {
     await interaction.deferReply({ ephemeral: true })

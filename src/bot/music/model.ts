@@ -38,6 +38,7 @@ export type SongChoice = {
   channel: VoiceChannel
   message: Message
   songs: YouTubeSearchResult[]
+  next: boolean
 }
 
 export type SongChoicesEmbed = {

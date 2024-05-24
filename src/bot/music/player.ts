@@ -128,10 +128,15 @@ export default class GuildPlayer {
    *
    * @param song - The song to add
    * @param user - The user that requested the song
+   * @param next - If the song should be played next or not
    * @returns None
    */
-  private _addSongToQueue = async (song: Song, user: string) => {
-    this._queue.push({
+  private _addSongToQueue = async (
+    song: Song,
+    user: string,
+    next: boolean = false
+  ) => {
+    const songData = {
       title: song.title,
       id: song.id,
       duration: song.duration,
@@ -139,7 +144,13 @@ export default class GuildPlayer {
       url: song.url,
       thumbnail: song.thumbnail,
       user: user
-    })
+    }
+
+    if (next && this._playing) {
+      this._queue.splice(this._queueIndex + 1, 0, songData)
+    } else {
+      this._queue.push(songData)
+    }
 
     if (!this._playing && !this._paused) {
       await this._playSong()
@@ -159,6 +170,8 @@ export default class GuildPlayer {
    */
   private _addSpotify = async (interaction: ChatInputCommandInteraction) => {
     const song = interaction.options.getString('song')!
+    const next = interaction.options.getBoolean('next') ?? false
+
     const playlistId = song.includes('playlist/')
       ? song.split('playlist/')[1].split('?si=')[0]
       : undefined
@@ -167,14 +180,22 @@ export default class GuildPlayer {
       const songId = song.split('track/')[1].split('?si=')[0]
       let cacheEntry = await this._cache.get('spotifyTracks', songId)
       if (cacheEntry && !Array.isArray(cacheEntry)) {
-        await this._addSongToQueue(cacheEntry.song, interaction.user.username)
+        await this._addSongToQueue(
+          cacheEntry.song,
+          interaction.user.username,
+          next
+        )
         return 1
       }
 
       const query = await this._spotifyClient.getTrack(songId)
       cacheEntry = await this._cache.get('youtubeQueries', query)
       if (cacheEntry && !Array.isArray(cacheEntry)) {
-        await this._addSongToQueue(cacheEntry.song, interaction.user.username)
+        await this._addSongToQueue(
+          cacheEntry.song,
+          interaction.user.username,
+          next
+        )
         return 1
       }
 
@@ -182,7 +203,11 @@ export default class GuildPlayer {
       const videoId = songChoices[0]?.id.videoId
       cacheEntry = await this._cache.get('youtubeTracks', videoId)
       if (cacheEntry && !Array.isArray(cacheEntry)) {
-        await this._addSongToQueue(cacheEntry.song, interaction.user.username)
+        await this._addSongToQueue(
+          cacheEntry.song,
+          interaction.user.username,
+          next
+        )
         return 1
       }
 
@@ -206,7 +231,7 @@ export default class GuildPlayer {
         }
       }
 
-      await this._addSongToQueue(songData.song, interaction.user.username)
+      await this._addSongToQueue(songData.song, interaction.user.username, next)
       await this._cache.add('spotifyTracks', songId, songData)
       await this._cache.add('youtubeQueries', query, songData)
       await this._cache.add('youtubeTracks', videoId, songData)
@@ -272,6 +297,8 @@ export default class GuildPlayer {
    */
   private _addYoutube = async (interaction: ChatInputCommandInteraction) => {
     const song = interaction.options.getString('song')!
+    const next = interaction.options.getBoolean('next') ?? false
+
     const playlistId = song.includes('&list=')
       ? song.split('&list=')[1].split('&index=')[0]
       : undefined
@@ -280,7 +307,11 @@ export default class GuildPlayer {
       const videoId = song.split('?v=')[1]
       const cacheEntry = await this._cache.get('youtubeTracks', videoId)
       if (cacheEntry && !Array.isArray(cacheEntry)) {
-        await this._addSongToQueue(cacheEntry.song, interaction.user.username)
+        await this._addSongToQueue(
+          cacheEntry.song,
+          interaction.user.username,
+          next
+        )
         return 1
       }
 
@@ -303,7 +334,7 @@ export default class GuildPlayer {
         }
       }
 
-      await this._addSongToQueue(songData.song, interaction.user.username)
+      await this._addSongToQueue(songData.song, interaction.user.username, next)
       await this._cache.add('youtubeTracks', videoId, songData)
       return 1
     }
@@ -456,12 +487,14 @@ export default class GuildPlayer {
     const songChoices = await this._youTubeClient.searchYoutube(song)
     const songChoiceEmbed = await embed.songChoicesEmbed(songChoices)
     const message = await interaction.editReply(songChoiceEmbed)
+    const next = interaction.options.getBoolean('next') ?? false
 
     this._musicChoiceQueue.push({
       chatInteraction: interaction,
       channel: channel,
       message: message,
-      songs: songChoices
+      songs: songChoices,
+      next
     })
   }
 
@@ -562,7 +595,7 @@ export default class GuildPlayer {
       })
     }
 
-    const { channel, songs } = choiceQueue
+    const { channel, next, songs } = choiceQueue
     let song
     switch (interaction.customId) {
       case 'music_choice_one':
@@ -605,7 +638,7 @@ export default class GuildPlayer {
       thumbnail: songInfo.thumbnail
     }
 
-    await this._addSongToQueue(songData, interaction.user.username)
+    await this._addSongToQueue(songData, interaction.user.username, next)
   }
 
   /**
