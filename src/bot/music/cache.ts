@@ -29,15 +29,23 @@ export default class PlayerCache {
         filePath,
         JSON.stringify(
           {
-            queries: {},
-            spotify: {},
-            youtube: {}
+            spotifyPlaylists: {},
+            spotifyTracks: {},
+            youtubePlaylists: {},
+            youtubeQueries: {},
+            youtubeTracks: {}
           },
           null,
           2
         )
       )
-      this._cache = { queries: {}, spotify: {}, youtube: {} }
+      this._cache = {
+        spotifyPlaylists: {},
+        spotifyTracks: {},
+        youtubePlaylists: {},
+        youtubeQueries: {},
+        youtubeTracks: {}
+      }
     }
 
     console.log(`PlayerCache initialized`)

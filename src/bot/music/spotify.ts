@@ -36,15 +36,36 @@ export default class SpotifyClient {
       const playlist = await this._spotifyClient.playlists.getPlaylistItems(
         playlistId,
         'US',
-        'items(track(name,artists(name)))',
+        'items(track(id,name,artists(name)))',
         50
       )
 
-      return playlist.items.map(
-        (item) => `${item.track.artists[0].name} - ${item.track.name}`
-      )
+      return playlist.items.map((item) => {
+        return {
+          title: `${item.track.artists[0].name} - ${item.track.name}`,
+          trackId: item.track.id
+        }
+      })
     } catch (err) {
       return []
+    }
+  }
+
+  /**
+   * Get track from Spotify API.
+   *
+   * Tracks - Get Track: {@link https://developer.spotify.com/documentation/web-api/reference/get-track}
+   *
+   * @param trackId - The Spotify track ID
+   * @returns The song
+   */
+  getTrack = async (trackId: string) => {
+    try {
+      const track = await this._spotifyClient.tracks.get(trackId, 'US')
+
+      return `${track.artists[0].name} - ${track.name}`
+    } catch (err) {
+      return ''
     }
   }
 }
