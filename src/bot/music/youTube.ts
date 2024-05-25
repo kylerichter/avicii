@@ -40,6 +40,7 @@ export default class YouTubeClient {
       const response = await this._youtubeClient.search.list({
         part: ['snippet'],
         maxResults: 3,
+        order: 'viewCount',
         q: query + ' explicit lyrics',
         safeSearch: 'none',
         topicId: '/m/04rlf',
