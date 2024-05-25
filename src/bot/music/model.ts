@@ -22,6 +22,7 @@ export type CacheKind = 'spotifyTracks' | 'youtubeQueries' | 'youtubeTracks'
 
 export type Queue = Song & {
   user: string
+  userImage: string
 }
 
 export type Song = {

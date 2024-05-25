@@ -76,7 +76,7 @@ const nowPlaying = async (song: Queue) => {
     .setTitle(song.title)
     .setURL(song.url)
     .setThumbnail(song.thumbnail)
-    .setFooter({ text: song.user })
+    .setFooter({ iconURL: song.userImage, text: song.user })
 }
 
 /**
