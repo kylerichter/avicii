@@ -485,6 +485,12 @@ export default class GuildPlayer {
     song: string
   ) => {
     const songChoices = await this._youTubeClient.searchYoutube(song)
+    if (songChoices.length === 0) {
+      return await interaction.editReply({
+        content: 'Something went wrong!'
+      })
+    }
+
     const songChoiceEmbed = await embed.songChoicesEmbed(songChoices)
     const message = await interaction.editReply(songChoiceEmbed)
     const next = interaction.options.getBoolean('next') ?? false
