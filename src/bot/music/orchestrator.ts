@@ -127,6 +127,25 @@ export default class GuildPlayerOrchestrator {
   }
 
   /**
+   * Send the clear queue command to the correct GuildPlayer.
+   *
+   * @param interaction - The interaction sent
+   */
+  clear = async (interaction: ChatInputCommandInteraction) => {
+    const guildPlayer = this._guildPlayers.find(
+      (guildPlayer) => guildPlayer.guild.id === interaction.guildId
+    )
+
+    if (guildPlayer) {
+      guildPlayer.clear(interaction)
+    } else {
+      return interaction.editReply({
+        content: 'Something went wrong!'
+      })
+    }
+  }
+
+  /**
    * Send the play command to the correct GuildPlayer.
    *
    * @param interaction - The interaction sent
