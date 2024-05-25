@@ -15,40 +15,40 @@ import row from './row'
  * @param channel - The channel to get the embeds from
  * @returns An object containing the now playing and queue embed messages
  */
-const getMusicEmbeds = async (channel: TextChannel) => {
-  let nowPlaying, queue
+const get = async (channel: TextChannel) => {
+  let nowPlayingEmbed, queueEmbed
 
   const messages = await channel.messages.fetch({ limit: 2 })
   for (const message of messages) {
     const author = message[1]?.embeds[0]?.author
     const title = message[1]?.embeds[0]?.title
     if (author?.name === 'Now Playing') {
-      nowPlaying = message[1]
+      nowPlayingEmbed = message[1]
     }
 
     if (title === 'Queue') {
-      queue = message[1]
+      queueEmbed = message[1]
     }
   }
 
-  if (!nowPlaying) {
-    nowPlaying = await channel.send({
+  if (!nowPlayingEmbed) {
+    nowPlayingEmbed = await channel.send({
       embeds: [await nothingPlaying()],
       components: [await row.resume()]
     })
 
-    queue = await channel.send({
-      embeds: [await queueEmbed([], 0)]
+    queueEmbed = await channel.send({
+      embeds: [await queue([], 0)]
     })
   }
 
-  if (!queue) {
-    queue = await channel.send({
-      embeds: [await queueEmbed([], 0)]
+  if (!queueEmbed) {
+    queueEmbed = await channel.send({
+      embeds: [await queue([], 0)]
     })
   }
 
-  return { nowPlayingEmbed: nowPlaying, queueEmbed: queue }
+  return { nowPlayingEmbed, queueEmbed }
 }
 
 /**
@@ -87,7 +87,7 @@ const nowPlaying = async (song: Queue) => {
  * @param index - The current queue index
  * @returns A queue embed
  */
-const queueEmbed = async (queue: Queue[], index: number) => {
+const queue = async (queue: Queue[], index: number) => {
   const embed = new EmbedBuilder().setColor('#d0342c').setTitle('Queue')
 
   let queueString = ''
@@ -140,7 +140,7 @@ const queueEmbed = async (queue: Queue[], index: number) => {
  * @param songs - The list of songs to display
  * @returns An object containing the embed and button components
  */
-const songChoicesEmbed = async (
+const songChoices = async (
   songs: YouTubeSearchResult[]
 ): Promise<SongChoicesEmbed> => {
   let cnt = 1
@@ -180,9 +180,9 @@ const songChoicesEmbed = async (
 }
 
 export default {
-  getMusicEmbeds,
+  get,
   nothingPlaying,
   nowPlaying,
-  queueEmbed,
-  songChoicesEmbed
+  queue,
+  songChoices
 }

@@ -101,7 +101,7 @@ export default class GuildPlayer {
     const channel = this._client.channels.cache.get(musicChannelId)
     if (channel) {
       this._musicChannel = channel as TextChannel
-      const { nowPlayingEmbed, queueEmbed } = await embed.getMusicEmbeds(
+      const { nowPlayingEmbed, queueEmbed } = await embed.get(
         this._musicChannel
       )
       this._nowPlayingEmbed = nowPlayingEmbed
@@ -117,7 +117,7 @@ export default class GuildPlayer {
 
     if (this._queueEmbed) {
       await this._queueEmbed.edit({
-        embeds: [await embed.queueEmbed([], 0)]
+        embeds: [await embed.queue([], 0)]
       })
     }
 
@@ -158,7 +158,7 @@ export default class GuildPlayer {
     }
 
     await this._queueEmbed?.edit({
-      embeds: [await embed.queueEmbed(this._queue, this._queueIndex)]
+      embeds: [await embed.queue(this._queue, this._queueIndex)]
     })
   }
 
@@ -441,7 +441,7 @@ export default class GuildPlayer {
     })
 
     await this._queueEmbed?.edit({
-      embeds: [await embed.queueEmbed([], 0)]
+      embeds: [await embed.queue([], 0)]
     })
   }
 
@@ -492,7 +492,7 @@ export default class GuildPlayer {
       })
     }
 
-    const songChoiceEmbed = await embed.songChoicesEmbed(songChoices)
+    const songChoiceEmbed = await embed.songChoices(songChoices)
     const message = await interaction.editReply(songChoiceEmbed)
     const next = interaction.options.getBoolean('next') ?? false
 
@@ -559,7 +559,7 @@ export default class GuildPlayer {
     })
 
     await this._queueEmbed?.edit({
-      embeds: [await embed.queueEmbed(this._queue, this._queueIndex)]
+      embeds: [await embed.queue(this._queue, this._queueIndex)]
     })
   }
 
@@ -762,7 +762,7 @@ export default class GuildPlayer {
     this._queue.splice(this._queueIndex + 1, nextSongs.length, ...shuffledSongs)
 
     await this._queueEmbed?.edit({
-      embeds: [await embed.queueEmbed(this._queue, this._queueIndex)]
+      embeds: [await embed.queue(this._queue, this._queueIndex)]
     })
 
     return await interaction.editReply({
