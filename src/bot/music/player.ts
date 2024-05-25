@@ -683,6 +683,31 @@ export default class GuildPlayer {
   }
 
   /**
+   * Clear the songs in the queue after the current playing song.
+   *
+   * @param interaction - The interaction to reply to
+   * @returns Interaction reply
+   */
+  clear = async (interaction: ChatInputCommandInteraction) => {
+    if (!this._player) {
+      return await interaction.editReply({
+        content: 'Nothing is playing!'
+      })
+    }
+
+    if (this._queueIndex >= this._queue.length - 1) {
+      return await interaction.editReply({
+        content: 'No songs in queue to clear!'
+      })
+    }
+
+    this._queue.slice(0, this._queueIndex + 1)
+    return await interaction.editReply({
+      content: 'Cleared queue!'
+    })
+  }
+
+  /**
    * Add songs to the music queue. If no song is playing and the player is not paused,
    * it will be played right away.
    *
