@@ -20,6 +20,7 @@ import {
   TextChannel,
   VoiceChannel
 } from 'discord.js'
+import _ from 'lodash'
 import fs from 'node:fs'
 import path from 'path'
 import { Payload } from 'youtube-dl-exec'
@@ -728,6 +729,38 @@ export default class GuildPlayer {
 
     return interaction.editReply({
       content: `Added ${songsAdded} ${songsAdded > 1 ? 'songs' : 'song'} to queue!`
+    })
+  }
+
+  /**
+   * Shuffle the songs in the queue.
+   *
+   * @param interaction - The interaction to reply to
+   * @returns Interaction reply
+   */
+  shuffle = async (interaction: ChatInputCommandInteraction) => {
+    if (!this._player) {
+      return await interaction.editReply({
+        content: 'Nothing is playing!'
+      })
+    }
+
+    const nextSongs = this._queue.slice(this._queueIndex + 1)
+    if (nextSongs.length < 3) {
+      return await interaction.editReply({
+        content: 'Not enough songs to shuffle!'
+      })
+    }
+
+    const shuffledSongs = _.shuffle(nextSongs)
+    this._queue.splice(this._queueIndex + 1, nextSongs.length, ...shuffledSongs)
+
+    await this._queueEmbed?.edit({
+      embeds: [await embed.queueEmbed(this._queue, this._queueIndex)]
+    })
+
+    return await interaction.editReply({
+      content: 'Shuffled queue!'
     })
   }
 
