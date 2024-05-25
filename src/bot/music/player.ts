@@ -53,6 +53,9 @@ export default class GuildPlayer {
   private _paused = false
   private _playing = false
   private _playTimestamp = 0
+  private _elapsedTime = 0
+  private _pauseTimestamp: number | null
+  private _startTimestamp: number | null
 
   private _queue: Queue[] = []
   private _queueIndex = 0
@@ -61,6 +64,7 @@ export default class GuildPlayer {
   private _musicChannel?: TextChannel
   private _nowPlayingEmbed?: Message
   private _queueEmbed?: Message
+  private _updateInterval: NodeJS.Timeout | null
 
   /**
    * Constructs a new GuildPlayer instance.
@@ -414,12 +418,16 @@ export default class GuildPlayer {
     this._connection = undefined
 
     this._playing = false
+    this._elapsedTime = 0
+    this._pauseTimestamp = null
+    this._startTimestamp = null
 
     // TODO: delete song files
 
     this._queue = []
     this._queueIndex = 0
     this._musicChoiceQueue = []
+    clearInterval(this._updateInterval ?? 0)
 
     await this._nowPlayingEmbed?.edit({
       embeds: [await embed.nothingPlaying()],
@@ -455,6 +463,23 @@ export default class GuildPlayer {
       {
         output: path.join(__dirname, `${baseFilePath}/song-${songInfo.id}.webm`)
       }
+    )
+  }
+
+  /**
+   * Get the current position of the song.
+   *
+   * @returns The current position of the song
+   */
+  private _getPosition = async () => {
+    if (this._paused) {
+      return this._elapsedTime / 1000
+    }
+
+    return (
+      (this._elapsedTime +
+        (Date.now() - (this._startTimestamp ?? Date.now()))) /
+      1000
     )
   }
 
@@ -537,15 +562,37 @@ export default class GuildPlayer {
     const resource = createAudioResource(songFilePath, { inputType })
     this._player?.play(resource)
     this._playTimestamp = Date.now()
+    this._startTimestamp = Date.now()
+    this._elapsedTime = 0
     this._playing = true
 
-    await this._nowPlayingEmbed?.edit({
-      embeds: [await embed.nowPlaying(song)],
-      components: [await row.pause()]
-    })
+    if (this._updateInterval) clearInterval(this._updateInterval)
+    this._updateInterval = setInterval(async () => {
+      if (this._playing) {
+        await this._updateNowPlayingEmbed('pause')
+      }
+    }, 10000)
 
+    await this._updateNowPlayingEmbed('pause')
     await this._queueEmbed?.edit({
       embeds: [await embed.queue(this._queue, this._queueIndex)]
+    })
+  }
+
+  /**
+   * Update the now playing embed with the current song.
+   *
+   * @param component - The row component to use
+   * @returns None
+   */
+  private _updateNowPlayingEmbed = async (component: 'pause' | 'resume') => {
+    const song = this._queue[this._queueIndex]
+
+    await this._nowPlayingEmbed?.edit({
+      embeds: [await embed.nowPlaying(song, await this._getPosition())],
+      components: [
+        component === 'pause' ? await row.pause() : await row.resume()
+      ]
     })
   }
 
@@ -842,18 +889,14 @@ export default class GuildPlayer {
       })
     }
 
-    const embed = this._nowPlayingEmbed?.embeds[0]
-    if (!embed) return
-
     if (this._paused) {
       this._player?.unpause()
       this._paused = false
       this._playing = true
+      this._startTimestamp = Date.now()
+      this._pauseTimestamp = null
 
-      await this._nowPlayingEmbed?.edit({
-        embeds: [embed],
-        components: [await row.pause()]
-      })
+      await this._updateNowPlayingEmbed('pause')
 
       await interaction.editReply({
         content: 'Resumed playing!'
@@ -863,10 +906,11 @@ export default class GuildPlayer {
       this._paused = true
       this._playing = false
 
-      await this._nowPlayingEmbed?.edit({
-        embeds: [embed],
-        components: [await row.resume()]
-      })
+      this._pauseTimestamp = Date.now()
+      this._elapsedTime +=
+        this._pauseTimestamp - (this._startTimestamp ?? -this._pauseTimestamp)
+
+      await this._updateNowPlayingEmbed('resume')
 
       await interaction.editReply({
         content: 'Paused song!'

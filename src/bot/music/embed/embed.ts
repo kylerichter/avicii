@@ -6,6 +6,7 @@ import {
   TextChannel
 } from 'discord.js'
 import { Queue, SongChoicesEmbed, YouTubeSearchResult } from '../model'
+import { prettyTime, progressBar } from '../util'
 import row from './row'
 
 /**
@@ -67,13 +68,17 @@ const nothingPlaying = async () => {
  * Create a now playing embed with the given song info.
  *
  * @param song - The song playing
+ * @param elapsedTime - The elapsed time of the song
  * @returns A now playing embed
  */
-const nowPlaying = async (song: Queue) => {
+const nowPlaying = async (song: Queue, elapsedTime: number) => {
+  const description = `${await progressBar(song.duration, elapsedTime)} \`[${await prettyTime(elapsedTime)}/${song.durationString}]\``
+
   return new EmbedBuilder()
     .setColor('#d0342c')
     .setAuthor({ name: 'Now Playing' })
     .setTitle(song.title)
+    .setDescription(description)
     .setURL(song.url)
     .setThumbnail(song.thumbnail)
     .setFooter({ iconURL: song.userImage, text: song.user })
