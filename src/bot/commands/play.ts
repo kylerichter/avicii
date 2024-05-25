@@ -24,6 +24,6 @@ module.exports = {
     await interaction.deferReply({ ephemeral: true })
 
     const client = interaction.client
-    await client.guildPlayerOrchestrator.playSong(interaction)
+    await client.guildPlayerOrchestrator.play(interaction)
   }
 }

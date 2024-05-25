@@ -588,7 +588,7 @@ export default class GuildPlayer {
    * @param interaction - The button interaction to reply to
    * @returns Interaction update
    */
-  addSongChoice = async (interaction: ButtonInteraction) => {
+  addChoice = async (interaction: ButtonInteraction) => {
     const messageId = interaction.message.id
     const choiceQueue = this._musicChoiceQueue.find(
       (choiceQueue) => choiceQueue.message.id === messageId
@@ -655,7 +655,7 @@ export default class GuildPlayer {
    * @param interaction - The button interaction to reply to
    * @returns Interaction reply
    */
-  backSong = async (interaction: ButtonInteraction) => {
+  back = async (interaction: ButtonInteraction) => {
     if (!this._player) {
       return interaction.editReply({
         content: 'Nothing is playing!'
@@ -689,7 +689,7 @@ export default class GuildPlayer {
    * @param interaction - The interaction to reply to
    * @returns Interaction reply
    */
-  playSong = async (interaction: ChatInputCommandInteraction) => {
+  play = async (interaction: ChatInputCommandInteraction) => {
     const member = interaction.member as GuildMember
     const channel = member.voice.channel as VoiceChannel
     const song = interaction.options.getString('song')
@@ -776,7 +776,7 @@ export default class GuildPlayer {
    * @param interaction - The button interaction to reply to
    * @returns Interaction reply
    */
-  skipSong = async (interaction: ButtonInteraction) => {
+  skip = async (interaction: ButtonInteraction) => {
     if (!this._player) {
       return interaction.editReply({
         content: 'Nothing is playing!'
@@ -804,7 +804,7 @@ export default class GuildPlayer {
    * @param interaction - The interaction to reply to
    * @returns Interaction reply
    */
-  stopPlaying = async (interaction: ChatInputCommandInteraction) => {
+  stop = async (interaction: ChatInputCommandInteraction) => {
     if (!this._connection) {
       return interaction.editReply({
         content: 'Nothing is playing!'
@@ -824,7 +824,7 @@ export default class GuildPlayer {
    * @param interaction - The button interaction to reply to
    * @returns Interaction update
    */
-  toggleSong = async (interaction: ButtonInteraction) => {
+  toggle = async (interaction: ButtonInteraction) => {
     if (!this._player) {
       return await interaction.editReply({
         content: 'Nothing is currently playing! Add a song with `/play`'

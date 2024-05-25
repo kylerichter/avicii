@@ -93,13 +93,13 @@ export default class GuildPlayerOrchestrator {
    *
    * @param interaction - The button interaction sent
    */
-  addSongChoice = async (interaction: ButtonInteraction) => {
+  addChoice = async (interaction: ButtonInteraction) => {
     const guildPlayer = this._guildPlayers.find(
       (guildPlayer) => guildPlayer.guild.id === interaction.guildId
     )
 
     if (guildPlayer) {
-      guildPlayer.addSongChoice(interaction)
+      guildPlayer.addChoice(interaction)
     } else {
       return interaction.editReply({
         content: 'Something went wrong!'
@@ -112,13 +112,13 @@ export default class GuildPlayerOrchestrator {
    *
    * @param interaction - The button interaction sent
    */
-  backSong = async (interaction: ButtonInteraction) => {
+  back = async (interaction: ButtonInteraction) => {
     const guildPlayer = this._guildPlayers.find(
       (guildPlayer) => guildPlayer.guild.id === interaction.guildId
     )
 
     if (guildPlayer) {
-      guildPlayer.backSong(interaction)
+      guildPlayer.back(interaction)
     } else {
       return interaction.editReply({
         content: 'Something went wrong!'
@@ -131,13 +131,13 @@ export default class GuildPlayerOrchestrator {
    *
    * @param interaction - The interaction sent
    */
-  playSong = async (interaction: ChatInputCommandInteraction) => {
+  play = async (interaction: ChatInputCommandInteraction) => {
     const guildPlayer = this._guildPlayers.find(
       (guildPlayer) => guildPlayer.guild.id === interaction.guildId
     )
 
     if (guildPlayer) {
-      guildPlayer.playSong(interaction)
+      guildPlayer.play(interaction)
     } else {
       return interaction.editReply({
         content: 'Something went wrong!'
@@ -169,13 +169,13 @@ export default class GuildPlayerOrchestrator {
    *
    * @param interaction - The button interaction sent
    */
-  skipSong = async (interaction: ButtonInteraction) => {
+  skip = async (interaction: ButtonInteraction) => {
     const guildPlayer = this._guildPlayers.find(
       (guildPlayer) => guildPlayer.guild.id === interaction.guildId
     )
 
     if (guildPlayer) {
-      guildPlayer.skipSong(interaction)
+      guildPlayer.skip(interaction)
     } else {
       return interaction.editReply({
         content: 'Something went wrong!'
@@ -188,13 +188,13 @@ export default class GuildPlayerOrchestrator {
    *
    * @param interaction - The interaction sent
    */
-  stopSong = async (interaction: ChatInputCommandInteraction) => {
+  stop = async (interaction: ChatInputCommandInteraction) => {
     const guildPlayer = this._guildPlayers.find(
       (guildPlayer) => guildPlayer.guild.id === interaction.guildId
     )
 
     if (guildPlayer) {
-      guildPlayer.stopPlaying(interaction)
+      guildPlayer.stop(interaction)
     } else {
       return interaction.editReply({
         content: 'Something went wrong!'
@@ -207,13 +207,13 @@ export default class GuildPlayerOrchestrator {
    *
    * @param interaction - The button interaction sent
    */
-  toggleSong = async (interaction: ButtonInteraction) => {
+  toggle = async (interaction: ButtonInteraction) => {
     const guildPlayer = this._guildPlayers.find(
       (guildPlayer) => guildPlayer.guild.id === interaction.guildId
     )
 
     if (guildPlayer) {
-      guildPlayer.toggleSong(interaction)
+      guildPlayer.toggle(interaction)
     } else {
       return interaction.editReply({
         content: 'Something went wrong!'

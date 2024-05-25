@@ -12,6 +12,6 @@ module.exports = {
     await interaction.deferReply({ ephemeral: true })
 
     const client = interaction.client
-    await client.guildPlayerOrchestrator.stopSong(interaction)
+    await client.guildPlayerOrchestrator.stop(interaction)
   }
 }
