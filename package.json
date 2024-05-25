@@ -23,10 +23,12 @@
     "ffmpeg-static": "5.2.0",
     "googleapis": "137.1.0",
     "libsodium-wrappers": "0.7.13",
+    "lodash": "4.17.21",
     "youtube-dl-exec": "3.0.2"
   },
   "devDependencies": {
     "@types/config": "3.3.4",
+    "@types/lodash": "4.17.4",
     "@typescript-eslint/parser": "7.10.0",
     "eslint": "8.57.0",
     "eslint-plugin-prettier": "5.1.3",

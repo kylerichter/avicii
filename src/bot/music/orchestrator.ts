@@ -146,6 +146,25 @@ export default class GuildPlayerOrchestrator {
   }
 
   /**
+   * Send the shuffle command to the correct GuildPlayer.
+   *
+   * @param interaction - The interaction sent
+   */
+  shuffle = async (interaction: ChatInputCommandInteraction) => {
+    const guildPlayer = this._guildPlayers.find(
+      (guildPlayer) => guildPlayer.guild.id === interaction.guildId
+    )
+
+    if (guildPlayer) {
+      guildPlayer.shuffle(interaction)
+    } else {
+      return interaction.editReply({
+        content: 'Something went wrong!'
+      })
+    }
+  }
+
+  /**
    * Send the skip button interaction to the correct GuildPlayer.
    *
    * @param interaction - The button interaction sent
