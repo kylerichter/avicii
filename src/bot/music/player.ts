@@ -739,7 +739,7 @@ export default class GuildPlayer {
       })
     }
 
-    this._queue.slice(0, this._queueIndex + 1)
+    this._queue = this._queue.slice(0, this._queueIndex + 1)
     return await interaction.editReply({
       content: 'Cleared queue!'
     })
