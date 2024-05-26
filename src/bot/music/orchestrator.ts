@@ -99,9 +99,9 @@ export default class GuildPlayerOrchestrator {
     )
 
     if (guildPlayer) {
-      guildPlayer.addChoice(interaction)
+      await guildPlayer.addChoice(interaction)
     } else {
-      return interaction.editReply({
+      return await interaction.editReply({
         content: 'Something went wrong!'
       })
     }
@@ -118,9 +118,9 @@ export default class GuildPlayerOrchestrator {
     )
 
     if (guildPlayer) {
-      guildPlayer.back(interaction)
+      await guildPlayer.back(interaction)
     } else {
-      return interaction.editReply({
+      return await interaction.editReply({
         content: 'Something went wrong!'
       })
     }
@@ -137,9 +137,9 @@ export default class GuildPlayerOrchestrator {
     )
 
     if (guildPlayer) {
-      guildPlayer.clear(interaction)
+      await guildPlayer.clear(interaction)
     } else {
-      return interaction.editReply({
+      return await interaction.editReply({
         content: 'Something went wrong!'
       })
     }
@@ -156,9 +156,9 @@ export default class GuildPlayerOrchestrator {
     )
 
     if (guildPlayer) {
-      guildPlayer.play(interaction)
+      await guildPlayer.play(interaction)
     } else {
-      return interaction.editReply({
+      return await interaction.editReply({
         content: 'Something went wrong!'
       })
     }
@@ -175,9 +175,9 @@ export default class GuildPlayerOrchestrator {
     )
 
     if (guildPlayer) {
-      guildPlayer.shuffle(interaction)
+      await guildPlayer.shuffle(interaction)
     } else {
-      return interaction.editReply({
+      return await interaction.editReply({
         content: 'Something went wrong!'
       })
     }
@@ -194,9 +194,9 @@ export default class GuildPlayerOrchestrator {
     )
 
     if (guildPlayer) {
-      guildPlayer.skip(interaction)
+      await guildPlayer.skip(interaction)
     } else {
-      return interaction.editReply({
+      return await interaction.editReply({
         content: 'Something went wrong!'
       })
     }
@@ -213,9 +213,9 @@ export default class GuildPlayerOrchestrator {
     )
 
     if (guildPlayer) {
-      guildPlayer.stop(interaction)
+      await guildPlayer.stop(interaction)
     } else {
-      return interaction.editReply({
+      return await interaction.editReply({
         content: 'Something went wrong!'
       })
     }
@@ -232,9 +232,9 @@ export default class GuildPlayerOrchestrator {
     )
 
     if (guildPlayer) {
-      guildPlayer.toggle(interaction)
+      await guildPlayer.toggle(interaction)
     } else {
-      return interaction.editReply({
+      return await interaction.editReply({
         content: 'Something went wrong!'
       })
     }

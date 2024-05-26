@@ -695,7 +695,7 @@ export default class GuildPlayer {
    */
   back = async (interaction: ButtonInteraction) => {
     if (!this._player) {
-      return interaction.editReply({
+      return await interaction.editReply({
         content: 'Nothing is playing!'
       })
     }
@@ -704,7 +704,7 @@ export default class GuildPlayer {
     const timeDiff = (Date.now() - this._playTimestamp) / 1000
     if (timeDiff < 10) {
       if (this._queueIndex === 0) {
-        return interaction.editReply({
+        return await interaction.editReply({
           content: "Can't go back any further!"
         })
       }
@@ -715,7 +715,7 @@ export default class GuildPlayer {
 
     await this._playSong()
 
-    return interaction.editReply({
+    return await interaction.editReply({
       content: reply
     })
   }
@@ -758,19 +758,19 @@ export default class GuildPlayer {
     const song = interaction.options.getString('song')
 
     if (!channel) {
-      return interaction.editReply({
+      return await interaction.editReply({
         content: 'You must be connected to a voice channel!'
       })
     }
 
     if (!this._takeRequests) {
-      return interaction.editReply({
+      return await interaction.editReply({
         content: `No more requests can be taken. The bot will restart <t:${Math.floor((this._shutdownTimestamp + 10 * 60 * 1000) / 1000)}:R>`
       })
     }
 
     if (!song) {
-      return interaction.editReply({
+      return await interaction.editReply({
         content: 'Something went wrong!'
       })
     }
@@ -796,7 +796,7 @@ export default class GuildPlayer {
       })
     }
 
-    return interaction.editReply({
+    return await interaction.editReply({
       content: `Added ${songsAdded} ${songsAdded > 1 ? 'songs' : 'song'} to queue!`
     })
   }
@@ -841,7 +841,7 @@ export default class GuildPlayer {
    */
   skip = async (interaction: ButtonInteraction) => {
     if (!this._player) {
-      return interaction.editReply({
+      return await interaction.editReply({
         content: 'Nothing is playing!'
       })
     }
@@ -850,13 +850,13 @@ export default class GuildPlayer {
       this._queueIndex++
       await this._playSong()
 
-      return interaction.editReply({
+      return await interaction.editReply({
         content: 'Skipped song!'
       })
     }
 
     await this._destroyConnection()
-    return interaction.editReply({
+    return await interaction.editReply({
       content: 'Stopped playing!'
     })
   }
@@ -869,13 +869,13 @@ export default class GuildPlayer {
    */
   stop = async (interaction: ChatInputCommandInteraction) => {
     if (!this._connection) {
-      return interaction.editReply({
+      return await interaction.editReply({
         content: 'Nothing is playing!'
       })
     }
 
     await this._destroyConnection()
-    return interaction.editReply({
+    return await interaction.editReply({
       content: 'Stopped playing!'
     })
   }
