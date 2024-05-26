@@ -206,9 +206,10 @@ export default class GuildPlayer {
         return 1
       }
 
+      let songInfo
       const videoUrl = `https://www.youtube.com/watch?v=${videoId}`
       try {
-        var songInfo = await this._youTubeClient.getYoutubeInfo(videoUrl)
+        songInfo = await this._youTubeClient.getYoutubeInfo(videoUrl)
       } catch (err) {
         console.error(`Error getting YouTube info for ${videoUrl}`, err)
         return 0
@@ -253,9 +254,10 @@ export default class GuildPlayer {
         continue
       }
 
+      let songInfo
       const videoUrl = `https://www.youtube.com/watch?v=${videoId}`
       try {
-        var songInfo = await this._youTubeClient.getYoutubeInfo(videoUrl)
+        songInfo = await this._youTubeClient.getYoutubeInfo(videoUrl)
       } catch (err) {
         console.error(`Error getting YouTube info for ${videoUrl}`, err)
         continue
@@ -306,8 +308,9 @@ export default class GuildPlayer {
         return 1
       }
 
+      let songInfo
       try {
-        var songInfo = await this._youTubeClient.getYoutubeInfo(song)
+        songInfo = await this._youTubeClient.getYoutubeInfo(song)
       } catch (err) {
         console.error(`Error getting YouTube info for ${song}`, err)
         return 0
@@ -342,9 +345,10 @@ export default class GuildPlayer {
         continue
       }
 
+      let songInfo
       const videoUrl = `https://www.youtube.com/watch?v=${item}`
       try {
-        var songInfo = await this._youTubeClient.getYoutubeInfo(videoUrl)
+        songInfo = await this._youTubeClient.getYoutubeInfo(videoUrl)
       } catch (err) {
         console.error(`Error getting YouTube info for ${videoUrl}`, err)
         continue
@@ -656,9 +660,10 @@ export default class GuildPlayer {
       components: []
     })
 
+    let songInfo
     const songUrl = `https://www.youtube.com/watch?v=${song?.id.videoId}`
     try {
-      var songInfo = await this._youTubeClient.getYoutubeInfo(songUrl)
+      songInfo = await this._youTubeClient.getYoutubeInfo(songUrl)
     } catch (err) {
       console.log(`Error getting YouTube info for ${songUrl}`, err)
       return await interaction.update({
