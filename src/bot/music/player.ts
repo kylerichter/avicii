@@ -163,9 +163,7 @@ export default class GuildPlayer {
       await this._playSong()
     }
 
-    await this._queueEmbed?.edit({
-      embeds: [await embed.queue(this._queue, this._queueIndex)]
-    })
+    await this._updateQueueEmbed()
   }
 
   /**
@@ -578,27 +576,50 @@ export default class GuildPlayer {
     }, 10000)
 
     await this._updateNowPlayingEmbed('pause')
-    await this._queueEmbed?.edit({
-      embeds: [await embed.queue(this._queue, this._queueIndex)]
-    })
+    await this._updateQueueEmbed()
   }
 
   /**
    * Update the now playing embed with the current song.
+   * Debounced to prevent spamming the API.
    *
    * @param component - The row component to use
    * @returns None
    */
-  private _updateNowPlayingEmbed = async (component: 'pause' | 'resume') => {
-    const song = this._queue[this._queueIndex]
+  private _updateNowPlayingEmbed = _.debounce(
+    async (component: 'pause' | 'resume') => {
+      if (this._nowPlayingEmbed) {
+        const song = this._queue[this._queueIndex]
 
-    await this._nowPlayingEmbed?.edit({
-      embeds: [await embed.nowPlaying(song, await this._getPosition())],
-      components: [
-        component === 'pause' ? await row.pause() : await row.resume()
-      ]
-    })
-  }
+        await this._nowPlayingEmbed?.edit({
+          embeds: [await embed.nowPlaying(song, await this._getPosition())],
+          components: [
+            component === 'pause' ? await row.pause() : await row.resume()
+          ]
+        })
+      }
+    },
+    5000,
+    { leading: true, trailing: true }
+  )
+
+  /**
+   * Update the queue embed with the current queue.
+   * Debounced to prevent spamming the API.
+   *
+   * @returns None
+   */
+  private _updateQueueEmbed = _.debounce(
+    async () => {
+      if (this._queueEmbed) {
+        await this._queueEmbed.edit({
+          embeds: [await embed.queue(this._queue, this._queueIndex)]
+        })
+      }
+    },
+    5000,
+    { leading: true, trailing: true }
+  )
 
   /**
    * Return if the player is currently playing.
@@ -740,6 +761,8 @@ export default class GuildPlayer {
     }
 
     this._queue = this._queue.slice(0, this._queueIndex + 1)
+    await this._updateQueueEmbed()
+
     return await interaction.editReply({
       content: 'Cleared queue!'
     })
@@ -778,6 +801,10 @@ export default class GuildPlayer {
     if (!song.includes('youtube.com') && !song.includes('spotify.com')) {
       return await this._getSongChoices(interaction, channel, song)
     }
+
+    await interaction.editReply({
+      content: 'Adding songs to queue!'
+    })
 
     if (!this._player) await this._createConnection(channel)
 
@@ -823,10 +850,7 @@ export default class GuildPlayer {
 
     const shuffledSongs = _.shuffle(nextSongs)
     this._queue.splice(this._queueIndex + 1, nextSongs.length, ...shuffledSongs)
-
-    await this._queueEmbed?.edit({
-      embeds: [await embed.queue(this._queue, this._queueIndex)]
-    })
+    await this._updateQueueEmbed()
 
     return await interaction.editReply({
       content: 'Shuffled queue!'
