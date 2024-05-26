@@ -15,7 +15,7 @@ export type Cache = {
 
 export type CacheEntry = {
   song: Song
-  // lastAccessed: number
+  lastAccessed?: number
 }
 
 export type CacheKind = 'spotifyTracks' | 'youtubeQueries' | 'youtubeTracks'
