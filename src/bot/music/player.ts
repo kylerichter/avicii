@@ -24,7 +24,6 @@ import {
 import _ from 'lodash'
 import fs from 'node:fs'
 import path from 'path'
-import { Payload } from 'youtube-dl-exec'
 import PlayerCache from './cache'
 import embed from './embed/embed'
 import row from './embed/row'
@@ -32,8 +31,6 @@ import { CacheEntry, Queue, Song, SongChoice } from './model'
 import SpotifyClient from './spotify'
 import { getPosition } from './util'
 import YouTubeClient from './youTube'
-
-const baseFilePath = '../../../cache'
 
 /**
  * Represents a music player bound to a single guild.
@@ -214,7 +211,7 @@ export default class GuildPlayer {
         return 0
       }
 
-      await this._downloadSong(songInfo)
+      await this._youTubeClient.downloadSong(songInfo)
       const songData: CacheEntry = {
         song: {
           title: songInfo.title,
@@ -262,7 +259,7 @@ export default class GuildPlayer {
         continue
       }
 
-      await this._downloadSong(songInfo)
+      await this._youTubeClient.downloadSong(songInfo)
       const songData: CacheEntry = {
         song: {
           title: songInfo.title,
@@ -315,7 +312,7 @@ export default class GuildPlayer {
         return 0
       }
 
-      await this._downloadSong(songInfo)
+      await this._youTubeClient.downloadSong(songInfo)
       const songData: CacheEntry = {
         song: {
           title: songInfo.title,
@@ -353,7 +350,7 @@ export default class GuildPlayer {
         continue
       }
 
-      await this._downloadSong(songInfo)
+      await this._youTubeClient.downloadSong(songInfo)
       const songData: CacheEntry = {
         song: {
           title: songInfo.title,
@@ -443,33 +440,6 @@ export default class GuildPlayer {
   }
 
   /**
-   * Download song from YouTube.
-   *
-   * @param songInfo - The YouTube song info to download
-   * @returns None
-   */
-  private _downloadSong = async (songInfo: Payload) => {
-    await fs.promises.writeFile(
-      path.join(__dirname, `${baseFilePath}/videoInfo-${songInfo.id}.json`),
-      JSON.stringify(songInfo)
-    )
-
-    await this._youTubeClient.getFromInfo(
-      path.join(__dirname, `${baseFilePath}/videoInfo-${songInfo.id}.json`),
-      {
-        listThumbnails: true
-      }
-    )
-
-    await this._youTubeClient.getFromInfo(
-      path.join(__dirname, `${baseFilePath}/videoInfo-${songInfo.id}.json`),
-      {
-        output: path.join(__dirname, `${baseFilePath}/song-${songInfo.id}.webm`)
-      }
-    )
-  }
-
-  /**
    * Send an embed of the songs returned by YouTube query.
    *
    * @param interaction - The interaction to reply to
@@ -526,6 +496,7 @@ export default class GuildPlayer {
    * @returns None
    */
   private _playSong = async () => {
+    const baseFilePath = '../../../cache'
     const song = this._queue[this._queueIndex]
 
     //prettier-ignore
@@ -687,7 +658,7 @@ export default class GuildPlayer {
       })
     }
 
-    await this._downloadSong(songInfo)
+    await this._youTubeClient.downloadSong(songInfo)
     const songData = {
       title: songInfo.title,
       id: songInfo.id,

@@ -1,5 +1,7 @@
 import { google, youtube_v3 } from 'googleapis'
-import youtubedl from 'youtube-dl-exec'
+import fs from 'node:fs'
+import path from 'path'
+import youtubedl, { Payload } from 'youtube-dl-exec'
 import { YouTubeSearchResult } from './model'
 
 /**
@@ -17,6 +19,35 @@ export default class YouTubeClient {
     this._youtubeToken = process.env.YOUTUBE_TOKEN!
 
     console.log('YouTube client initialized')
+  }
+
+  /**
+   * Download song from YouTube.
+   *
+   * @param songInfo - The YouTube song info to download
+   * @returns None
+   */
+  downloadSong = async (songInfo: Payload) => {
+    const baseFilePath = '../../../cache'
+
+    await fs.promises.writeFile(
+      path.join(__dirname, `${baseFilePath}/videoInfo-${songInfo.id}.json`),
+      JSON.stringify(songInfo)
+    )
+
+    await this.getFromInfo(
+      path.join(__dirname, `${baseFilePath}/videoInfo-${songInfo.id}.json`),
+      {
+        listThumbnails: true
+      }
+    )
+
+    await this.getFromInfo(
+      path.join(__dirname, `${baseFilePath}/videoInfo-${songInfo.id}.json`),
+      {
+        output: path.join(__dirname, `${baseFilePath}/song-${songInfo.id}.webm`)
+      }
+    )
   }
 
   getFromInfo = async (infoFile: any, flags: any) => {
