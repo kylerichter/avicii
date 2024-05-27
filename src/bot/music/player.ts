@@ -230,15 +230,12 @@ export default class GuildPlayer {
       return 1
     }
 
-    const songs: CacheEntry[] = []
     const playlistItems = await this._spotifyClient.getPlaylistItems(playlistId)
-
-    for (const query of playlistItems) {
+    const songPromises = playlistItems.map(async (query) => {
       let cacheEntry = await this._cache.get('youtubeQueries', query.title)
       if (cacheEntry && !Array.isArray(cacheEntry)) {
         await this._addSongToQueue(cacheEntry.song, interaction.user)
-        songs.push(cacheEntry)
-        continue
+        return cacheEntry
       }
 
       const songChoices = await this._youTubeClient.searchYoutube(query.title)
@@ -246,8 +243,7 @@ export default class GuildPlayer {
       cacheEntry = await this._cache.get('youtubeTracks', videoId)
       if (cacheEntry && !Array.isArray(cacheEntry)) {
         await this._addSongToQueue(cacheEntry.song, interaction.user)
-        songs.push(cacheEntry)
-        continue
+        return cacheEntry
       }
 
       let songInfo
@@ -256,7 +252,7 @@ export default class GuildPlayer {
         songInfo = await this._youTubeClient.getYoutubeInfo(videoUrl)
       } catch (err) {
         console.error(`Error getting YouTube info for ${videoUrl}`, err)
-        continue
+        return null
       }
 
       await this._youTubeClient.downloadSong(songInfo)
@@ -275,8 +271,12 @@ export default class GuildPlayer {
       await this._cache.add('spotifyTracks', query.trackId, songData)
       await this._cache.add('youtubeQueries', query.title, songData)
       await this._cache.add('youtubeTracks', videoId, songData)
-      songs.push(songData)
-    }
+      return songData
+    })
+
+    const songs = (await Promise.all(songPromises)).filter(
+      (song) => song !== null
+    ) as CacheEntry[]
 
     return songs.length
   }
