@@ -30,6 +30,7 @@ import embed from './embed/embed'
 import row from './embed/row'
 import { CacheEntry, Queue, Song, SongChoice } from './model'
 import SpotifyClient from './spotify'
+import { getPosition } from './util'
 import YouTubeClient from './youTube'
 
 const baseFilePath = '../../../cache'
@@ -469,23 +470,6 @@ export default class GuildPlayer {
   }
 
   /**
-   * Get the current position of the song.
-   *
-   * @returns The current position of the song
-   */
-  private _getPosition = async () => {
-    if (this._paused) {
-      return this._elapsedTime / 1000
-    }
-
-    return (
-      (this._elapsedTime +
-        (Date.now() - (this._startTimestamp ?? Date.now()))) /
-      1000
-    )
-  }
-
-  /**
    * Send an embed of the songs returned by YouTube query.
    *
    * @param interaction - The interaction to reply to
@@ -592,7 +576,16 @@ export default class GuildPlayer {
         const song = this._queue[this._queueIndex]
 
         await this._nowPlayingEmbed?.edit({
-          embeds: [await embed.nowPlaying(song, await this._getPosition())],
+          embeds: [
+            await embed.nowPlaying(
+              song,
+              await getPosition(
+                this._elapsedTime,
+                this._paused,
+                this._startTimestamp
+              )
+            )
+          ],
           components: [
             component === 'pause' ? await row.pause() : await row.resume()
           ]

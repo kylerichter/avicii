@@ -1,6 +1,26 @@
 import config from 'config'
 
 /**
+ * Get the current position of the song.
+ *
+ * @param elapsedTime - The elapsed time of the song
+ * @param paused - Whether the song is paused
+ * @param startTimestamp - The timestamp when the song started
+ * @returns The current position of the song
+ */
+const getPosition = async (
+  elapsedTime: number,
+  paused: boolean,
+  startTimestamp: number | null
+) => {
+  if (paused) {
+    return elapsedTime / 1000
+  }
+
+  return (elapsedTime + (Date.now() - (startTimestamp ?? Date.now()))) / 1000
+}
+
+/**
  * Converts seconds to a human-readable format.
  *
  * @param seconds - The time in seconds
@@ -44,4 +64,4 @@ const progressBar = async (
   return progressBar
 }
 
-export { prettyTime, progressBar }
+export { getPosition, prettyTime, progressBar }
