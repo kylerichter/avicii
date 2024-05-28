@@ -72,7 +72,7 @@ export default class YouTubeClient {
         part: ['snippet'],
         maxResults: 3,
         order: 'viewCount',
-        q: query + ' explicit lyrics',
+        q: query + ' lyrics',
         safeSearch: 'none',
         topicId: '/m/04rlf',
         type: ['video'],
