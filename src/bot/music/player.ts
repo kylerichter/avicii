@@ -57,6 +57,7 @@ export default class GuildPlayer {
 
   private _queue: Queue[] = []
   private _queueIndex = 0
+  private _queuing = false
   private _musicChoiceQueue: SongChoice[] = []
 
   private _musicChannel?: TextChannel
@@ -409,6 +410,8 @@ export default class GuildPlayer {
    * @returns None
    */
   private _destroyConnection = async () => {
+    if (this._queuing) return
+
     this._player?.stop()
     this._player = undefined
 
@@ -640,8 +643,9 @@ export default class GuildPlayer {
     }
 
     if (!this._player) await this._createConnection(channel)
+    this._queuing = true
     await interaction.update({
-      content: 'Added song to queue',
+      content: 'Adding song to queue!',
       embeds: [],
       components: []
     })
@@ -652,6 +656,7 @@ export default class GuildPlayer {
       songInfo = await this._youTubeClient.getYoutubeInfo(songUrl)
     } catch (err) {
       console.log(`Error getting YouTube info for ${songUrl}`, err)
+      this._queuing = false
       return await interaction.update({
         content: 'Something went wrong!',
         embeds: [],
@@ -670,6 +675,13 @@ export default class GuildPlayer {
     }
 
     await this._addSongToQueue(songData, interaction.user, next)
+
+    this._queuing = false
+    await interaction.update({
+      content: 'Added song to queue!',
+      embeds: [],
+      components: []
+    })
   }
 
   /**
@@ -767,6 +779,7 @@ export default class GuildPlayer {
       return await this._getSongChoices(interaction, channel, song)
     }
 
+    this._queuing = true
     await interaction.editReply({
       content: 'Adding songs to queue!'
     })
@@ -781,6 +794,8 @@ export default class GuildPlayer {
     if (song.includes('youtube.com')) {
       songsAdded = await this._addYoutube(interaction)
     }
+
+    this._queuing = false
 
     if (songsAdded === 0 && song.includes('spotify.com')) {
       return await interaction.editReply({
