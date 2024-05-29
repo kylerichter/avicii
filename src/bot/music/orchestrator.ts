@@ -239,4 +239,21 @@ export default class GuildPlayerOrchestrator {
       })
     }
   }
+
+  /**
+   * Return connected voice channel ID, if one.
+   *
+   * @returns The ID of the connected voice channel or null
+   */
+  voiceChannel = async (guildId: string) => {
+    const guildPlayer = this._guildPlayers.find(
+      (guildPlayer) => guildPlayer.guild.id === guildId
+    )
+
+    if (guildPlayer) {
+      return guildPlayer.voiceChannel()
+    } else {
+      return null
+    }
+  }
 }
