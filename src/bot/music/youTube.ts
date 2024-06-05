@@ -71,10 +71,9 @@ export default class YouTubeClient {
       const response = await this._youtubeClient.search.list({
         part: ['snippet'],
         maxResults: 3,
-        order: 'viewCount',
-        q: query + ' lyrics',
+        q: query,
         safeSearch: 'none',
-        topicId: '/m/04rlf',
+        regionCode: 'US',
         type: ['video'],
         auth: this._youtubeToken
       })
