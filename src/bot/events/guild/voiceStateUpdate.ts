@@ -17,5 +17,9 @@ module.exports = {
         channel.guild.id
       )
     if (channel.id !== voiceChannel) return
+
+    if (channel.members.size === 1) {
+      await channel.client.guildPlayerOrchestrator.stop(channel.guild.id)
+    }
   }
 }
