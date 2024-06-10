@@ -609,6 +609,17 @@ export default class GuildPlayer {
   }
 
   /**
+   * Return connected voice channel ID, if one.
+   *
+   * @returns The ID of the connected voice channel or null
+   */
+  voiceChannel = () => {
+    if (!this._connection) return null
+
+    return this._connection.joinConfig.channelId
+  }
+
+  /**
    * Determine the song chosen and add it to the queue.
    *
    * @param interaction - The button interaction to reply to
