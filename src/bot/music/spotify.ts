@@ -24,6 +24,29 @@ export default class SpotifyClient {
   }
 
   /**
+   * Get list of album tracks from Spotify API.
+   *
+   * Albums - Get Album Tracks: {@link https://developer.spotify.com/documentation/web-api/reference/get-an-albums-tracks}
+   *
+   * @param albumId - The Spotify album ID
+   * @returns A list of the songs in the album
+   */
+  getAlbumTracks = async (albumId: string) => {
+    try {
+      const album = await this._spotifyClient.albums.tracks(albumId, 'US', 50)
+
+      return album.items.map((item) => {
+        return {
+          title: `${item.artists[0].name} - ${item.name}`,
+          trackId: item.id
+        }
+      })
+    } catch (err) {
+      return []
+    }
+  }
+
+  /**
    * Get playlist items from Spotify API.
    *
    * Playlists - Get Playlist Items: {@link https://developer.spotify.com/documentation/web-api/reference/get-playlists-tracks}
