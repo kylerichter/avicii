@@ -181,98 +181,35 @@ export default class GuildPlayer {
       : undefined
 
     if (!playlistId) {
-      const songId = song.split('track/')[1].split('?si=')[0]
-      let cacheEntry = await this._cache.get('spotifyTracks', songId)
-      if (cacheEntry && !Array.isArray(cacheEntry)) {
-        await this._addSongToQueue(cacheEntry.song, interaction.user, next)
-        return 1
+      const albumId = song.includes('album/')
+        ? song.split('album/')[1].split('?si=')[0]
+        : undefined
+
+      if (!albumId) {
+        const songId = song.split('track/')[1].split('?si=')[0]
+        return await this._addTrack(interaction, songId, next)
       }
 
-      const query = await this._spotifyClient.getTrack(songId)
-      cacheEntry = await this._cache.get('youtubeQueries', query)
-      if (cacheEntry && !Array.isArray(cacheEntry)) {
-        await this._addSongToQueue(cacheEntry.song, interaction.user, next)
-        return 1
-      }
-
-      const songChoices = await this._youTubeClient.searchYoutube(query)
-      const videoId = songChoices[0]?.id.videoId
-      cacheEntry = await this._cache.get('youtubeTracks', videoId)
-      if (cacheEntry && !Array.isArray(cacheEntry)) {
-        await this._addSongToQueue(cacheEntry.song, interaction.user, next)
-        return 1
-      }
-
-      let songInfo
-      const videoUrl = `https://www.youtube.com/watch?v=${videoId}`
-      try {
-        songInfo = await this._youTubeClient.getYoutubeInfo(videoUrl)
-      } catch (err) {
-        console.error(`Error getting YouTube info for ${videoUrl}`, err)
-        return 0
-      }
-
-      await this._youTubeClient.downloadSong(songInfo)
-      const songData: CacheEntry = {
-        song: {
-          title: songInfo.title,
-          id: songInfo.id,
-          duration: songInfo.duration,
-          durationString: songInfo.duration_string,
-          url: songInfo.webpage_url,
-          thumbnail: songInfo.thumbnail
-        }
-      }
-
-      await this._addSongToQueue(songData.song, interaction.user, next)
-      await this._cache.add('spotifyTracks', songId, songData)
-      await this._cache.add('youtubeQueries', query, songData)
-      await this._cache.add('youtubeTracks', videoId, songData)
-      return 1
+      return await this._addAlbum(interaction, albumId)
     }
 
-    const playlistItems = await this._spotifyClient.getPlaylistItems(playlistId)
-    const songPromises = playlistItems.map(async (query) => {
-      let cacheEntry = await this._cache.get('youtubeQueries', query.title)
-      if (cacheEntry && !Array.isArray(cacheEntry)) {
-        await this._addSongToQueue(cacheEntry.song, interaction.user)
-        return cacheEntry
-      }
+    return await this._addPlaylist(interaction, playlistId)
+  }
 
-      const songChoices = await this._youTubeClient.searchYoutube(query.title)
-      const videoId = songChoices[0]?.id.videoId
-      cacheEntry = await this._cache.get('youtubeTracks', videoId)
-      if (cacheEntry && !Array.isArray(cacheEntry)) {
-        await this._addSongToQueue(cacheEntry.song, interaction.user)
-        return cacheEntry
-      }
-
-      let songInfo
-      const videoUrl = `https://www.youtube.com/watch?v=${videoId}`
-      try {
-        songInfo = await this._youTubeClient.getYoutubeInfo(videoUrl)
-      } catch (err) {
-        console.error(`Error getting YouTube info for ${videoUrl}`, err)
-        return null
-      }
-
-      await this._youTubeClient.downloadSong(songInfo)
-      const songData: CacheEntry = {
-        song: {
-          title: songInfo.title,
-          id: songInfo.id,
-          duration: songInfo.duration,
-          durationString: songInfo.duration_string,
-          url: songInfo.webpage_url,
-          thumbnail: songInfo.thumbnail
-        }
-      }
-
-      await this._addSongToQueue(songData.song, interaction.user)
-      await this._cache.add('spotifyTracks', query.trackId, songData)
-      await this._cache.add('youtubeQueries', query.title, songData)
-      await this._cache.add('youtubeTracks', videoId, songData)
-      return songData
+  /**
+   * Handle adding a Spotify album to the queue.
+   *
+   * @param interaction - The interaction to reply to
+   * @param albumId - The Spotify album ID
+   * @returns The number of songs added
+   */
+  private _addAlbum = async (
+    interaction: ChatInputCommandInteraction,
+    albumId: string
+  ) => {
+    const albumItems = await this._spotifyClient.getAlbumTracks(albumId)
+    const songPromises = albumItems.map((query) => {
+      return this._processSong(interaction, query)
     })
 
     const songs = (await Promise.all(songPromises)).filter(
@@ -280,6 +217,137 @@ export default class GuildPlayer {
     ) as CacheEntry[]
 
     return songs.length
+  }
+
+  /**
+   * Handle adding a Spotify playist to the queue.
+   *
+   * @param interaction - The interaction to reply to
+   * @param playlistId - The Spotify playlist ID
+   * @returns The number of songs added
+   */
+  private _addPlaylist = async (
+    interaction: ChatInputCommandInteraction,
+    playlistId: string
+  ) => {
+    const playlistItems = await this._spotifyClient.getPlaylistItems(playlistId)
+    const songPromises = playlistItems.map(async (query) => {
+      return this._processSong(interaction, query)
+    })
+
+    const songs = (await Promise.all(songPromises)).filter(
+      (song) => song !== null
+    ) as CacheEntry[]
+
+    return songs.length
+  }
+
+  /**
+   * Handle adding a Spotify track to the queue.
+   *
+   * @param interaction - The interaction to reply to
+   * @param songId - The Spotify song ID
+   * @param next - If the song should be played next or not
+   * @returns The number of songs added
+   */
+  private _addTrack = async (
+    interaction: ChatInputCommandInteraction,
+    songId: string,
+    next: boolean
+  ) => {
+    let cacheEntry = await this._cache.get('spotifyTracks', songId)
+    if (cacheEntry && !Array.isArray(cacheEntry)) {
+      await this._addSongToQueue(cacheEntry.song, interaction.user, next)
+      return 1
+    }
+
+    const query = await this._spotifyClient.getTrack(songId)
+    cacheEntry = await this._cache.get('youtubeQueries', query)
+    if (cacheEntry && !Array.isArray(cacheEntry)) {
+      await this._addSongToQueue(cacheEntry.song, interaction.user, next)
+      return 1
+    }
+
+    const songChoices = await this._youTubeClient.searchYoutube(query)
+    const videoId = songChoices[0]?.id.videoId
+    cacheEntry = await this._cache.get('youtubeTracks', videoId)
+    if (cacheEntry && !Array.isArray(cacheEntry)) {
+      await this._addSongToQueue(cacheEntry.song, interaction.user, next)
+      return 1
+    }
+
+    let songInfo
+    const videoUrl = `https://www.youtube.com/watch?v=${videoId}`
+    try {
+      songInfo = await this._youTubeClient.getYoutubeInfo(videoUrl)
+    } catch (err) {
+      console.error(`Error getting YouTube info for ${videoUrl}`, err)
+      return 0
+    }
+
+    await this._youTubeClient.downloadSong(songInfo)
+    const songData: CacheEntry = {
+      song: {
+        title: songInfo.title,
+        id: songInfo.id,
+        duration: songInfo.duration,
+        durationString: songInfo.duration_string,
+        url: songInfo.webpage_url,
+        thumbnail: songInfo.thumbnail
+      }
+    }
+
+    await this._addSongToQueue(songData.song, interaction.user, next)
+    await this._cache.add('spotifyTracks', songId, songData)
+    await this._cache.add('youtubeQueries', query, songData)
+    await this._cache.add('youtubeTracks', videoId, songData)
+    return 1
+  }
+
+  private _processSong = async (
+    interaction: ChatInputCommandInteraction,
+    query: { title: string; trackId: string }
+  ) => {
+    let cacheEntry = await this._cache.get('youtubeQueries', query.title)
+    if (cacheEntry && !Array.isArray(cacheEntry)) {
+      await this._addSongToQueue(cacheEntry.song, interaction.user)
+      return cacheEntry
+    }
+
+    const songChoices = await this._youTubeClient.searchYoutube(query.title)
+    const videoId = songChoices[0]?.id.videoId
+    cacheEntry = await this._cache.get('youtubeTracks', videoId)
+    if (cacheEntry && !Array.isArray(cacheEntry)) {
+      await this._addSongToQueue(cacheEntry.song, interaction.user)
+      return cacheEntry
+    }
+
+    let songInfo
+    const videoUrl = `https://www.youtube.com/watch?v=${videoId}`
+    try {
+      songInfo = await this._youTubeClient.getYoutubeInfo(videoUrl)
+    } catch (err) {
+      console.error(`Error getting YouTube info for ${videoUrl}`, err)
+      return null
+    }
+
+    await this._youTubeClient.downloadSong(songInfo)
+    const songData: CacheEntry = {
+      song: {
+        title: songInfo.title,
+        id: songInfo.id,
+        duration: songInfo.duration,
+        durationString: songInfo.duration_string,
+        url: songInfo.webpage_url,
+        thumbnail: songInfo.thumbnail
+      }
+    }
+
+    await this._addSongToQueue(songData.song, interaction.user)
+    await this._cache.add('spotifyTracks', query.trackId, songData)
+    await this._cache.add('youtubeQueries', query.title, songData)
+    await this._cache.add('youtubeTracks', videoId, songData)
+    return songData
   }
 
   /**
@@ -425,8 +493,6 @@ export default class GuildPlayer {
     this._elapsedTime = 0
     this._pauseTimestamp = null
     this._startTimestamp = null
-
-    // TODO: delete song files
 
     this._queue = []
     this._queueIndex = 0
