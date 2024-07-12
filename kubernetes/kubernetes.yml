@@ -50,8 +50,9 @@ spec:
           volumeMounts:
             - name: avicii-cache
               mountPath: /app/cache
+              readOnly: false
       volumes:
         - name: avicii-cache
           hostPath:
             path: /mnt/vm-cache/avicii
-            type: Directory
+            type: DirectoryOrCreate
