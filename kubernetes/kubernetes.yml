@@ -48,21 +48,10 @@ spec:
                   name: avicii-secrets
                   key: youtube_token
           volumeMounts:
-            - name: avicii-pvc
+            - name: avicii-cache
               mountPath: /app/cache
       volumes:
-        - name: avicii-pvc
-          persistentVolumeClaim:
-            claimName: avicii-pvc
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: avicii-pvc
-  namespace: discord-bots
-spec:
-  accessModes:
-    - ReadWriteOncePod
-  resources:
-    requests:
-      storage: 10Gi
+        - name: avicii-cache
+          hostPath:
+            path: /mnt/vm-cache/avicii
+            type: Directory
