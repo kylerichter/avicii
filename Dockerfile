@@ -6,7 +6,7 @@ WORKDIR /app
 # ---- Dependencies ----
 FROM base AS dependencies
 
-COPY package.json package-lock.json ./
+COPY package.json package-lock.json prisma ./
 RUN apk add --no-cache --update python3 make g++ \
     && ln -sf python3 /usr/bin/python \
     && npm install
@@ -18,7 +18,7 @@ COPY . .
 RUN npm run build && rm -rf ./src
 
 # ---- Remove devDependencies ----
-FROM build as pre-release
+FROM build AS pre-release
 
 RUN rm -rf ./node_modules && npm install --production
 
@@ -30,6 +30,6 @@ RUN apk add --no-cache --update python3 \
 
 COPY --from=pre-release /app .
 
-ENV NODE_ENV production
+ENV NODE_ENV=production
 
 CMD ["npm", "start"]
