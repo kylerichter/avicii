@@ -24,7 +24,7 @@
     "googleapis": "140.0.1",
     "libsodium-wrappers": "0.7.14",
     "lodash": "4.17.21",
-    "youtube-dl-exec": "3.0.6"
+    "youtube-dl-exec": "3.0.7"
   },
   "devDependencies": {
     "@types/config": "3.3.4",
