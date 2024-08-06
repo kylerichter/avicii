@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "@discordjs/voice": "0.17.0",
-    "@prisma/client": "5.17.0",
+    "@prisma/client": "5.18.0",
     "@spotify/web-api-ts-sdk": "1.2.0",
     "config": "3.3.12",
     "discord.js": "14.15.3",
@@ -33,7 +33,7 @@
     "eslint": "8.57.0",
     "eslint-plugin-prettier": "5.2.1",
     "prettier": "3.3.3",
-    "prisma": "5.17.0",
+    "prisma": "5.18.0",
     "typescript": "5.5.4"
   },
   "engines": {
